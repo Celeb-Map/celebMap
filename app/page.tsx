@@ -136,7 +136,7 @@ export default function Page() {
           <SearchView celebrities={CELEBRITIES} restaurants={RESTAURANTS} />
         )}
         {activeTab === 'map' && (
-          <MapView restaurants={RESTAURANTS} celebrities={CELEBRITIES} />
+          <MapView />
         )}
         {activeTab === 'mypage' && (
           <MyPageView restaurants={RESTAURANTS} />

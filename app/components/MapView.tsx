@@ -1,184 +1,255 @@
 "use client";
-import { useState, type MouseEvent } from 'react';
-import { Search, Navigation, Star, Heart, ChevronUp, ChevronDown } from 'lucide-react';
-import type { Celeb, Restaurant } from '../lib/types';
 
-type Props = {
-  restaurants: Restaurant[];
-  celebrities: Celeb[];
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  LoaderCircle,
+  MapPin,
+  Navigation,
+} from 'lucide-react';
+
+type Coordinates = {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
 };
 
-const PIN_POSITIONS = [
-  { top: '22%', left: '38%' },
-  { top: '44%', left: '62%' },
-  { top: '32%', left: '72%' },
-  { top: '58%', left: '42%' },
-  { top: '18%', left: '57%' },
-  { top: '68%', left: '28%' },
-];
+type TourismPlace = {
+  id: string;
+  contentTypeId: string;
+  title: string;
+  address: string;
+  imageUrl: string | null;
+  longitude: number;
+  latitude: number;
+  distanceMeters: number;
+};
 
-export default function MapView({ restaurants, celebrities }: Props) {
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [likedIds, setLikedIds] = useState<Set<number>>(
-    new Set(restaurants.filter(r => r.liked).map(r => r.id))
-  );
-  const [activePin, setActivePin] = useState<number | null>(null);
+type NearbyResponse = {
+  totalCount: number;
+  places: TourismPlace[];
+  message?: string;
+};
 
-  const toggleLike = (e: MouseEvent, id: number) => {
-    e.stopPropagation();
-    setLikedIds(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
+function formatDistance(meters: number) {
+  if (meters < 1000) return `${meters}m`;
+  return `${(meters / 1000).toFixed(1)}km`;
+}
+
+export default function MapView() {
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
+  const [places, setPlaces] = useState<TourismPlace[]>([]);
+  const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
+  const [status, setStatus] = useState<'locating' | 'loading' | 'success' | 'error'>('locating');
+  const [message, setMessage] = useState('현재 위치를 확인하고 있어요.');
+
+  const loadNearbyPlaces = useCallback(async (position: Coordinates) => {
+    setStatus('loading');
+    setMessage('주변 관광지를 불러오고 있어요.');
+
+    try {
+      const params = new URLSearchParams({
+        latitude: position.latitude.toString(),
+        longitude: position.longitude.toString(),
+      });
+      const response = await fetch(`/api/tourism/nearby?${params}`);
+      const data = await response.json() as NearbyResponse;
+
+      if (!response.ok) throw new Error(data.message ?? '관광정보를 불러오지 못했습니다.');
+
+      setPlaces(data.places);
+      setStatus('success');
+      setMessage(
+        data.places.length > 0
+          ? `반경 3km 내 관광지 ${data.places.length}곳을 불러왔어요.`
+          : '반경 3km 내 등록된 관광지가 없어요.',
+      );
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : '관광정보를 불러오지 못했습니다.');
+    }
+  }, []);
+
+  const locateMe = useCallback(() => {
+    if (!navigator.geolocation) {
+      setStatus('error');
+      setMessage('이 브라우저는 위치 기능을 지원하지 않습니다.');
+      return;
+    }
+
+    setStatus('locating');
+    setMessage('현재 위치를 확인하고 있어요.');
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const nextCoordinates = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        };
+        setCoordinates(nextCoordinates);
+        void loadNearbyPlaces(nextCoordinates);
+      },
+      error => {
+        setStatus('error');
+        setMessage(
+          error.code === error.PERMISSION_DENIED
+            ? '위치 권한이 필요합니다. 브라우저에서 위치 접근을 허용해 주세요.'
+            : '현재 위치를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60_000 },
+    );
+  }, [loadNearbyPlaces]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(locateMe, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [locateMe]);
+
+  const pinPositions = useMemo(() => {
+    if (!coordinates) return [];
+    const latitudeScale = 0.032;
+    const longitudeScale = 0.04;
+
+    return places.map(place => ({
+      ...place,
+      left: Math.min(90, Math.max(10, 50 + ((place.longitude - coordinates.longitude) / longitudeScale) * 50)),
+      top: Math.min(86, Math.max(16, 50 - ((place.latitude - coordinates.latitude) / latitudeScale) * 50)),
+    }));
+  }, [coordinates, places]);
 
   return (
-    <div className="relative flex flex-col h-[calc(100vh-64px)]">
-      {/* Map placeholder */}
-      <div className="flex-1 relative bg-[#e8e3d5] overflow-hidden">
-        {/* Grid texture */}
+    <div className="relative flex h-[calc(100vh-64px)] flex-col">
+      <div className="relative flex-1 overflow-hidden bg-[#e8e3d5]">
         <div
-          className="absolute inset-0 opacity-20"
+          className="absolute inset-0 opacity-25"
           style={{
             backgroundImage:
               'linear-gradient(#aaa 1px, transparent 1px), linear-gradient(90deg, #aaa 1px, transparent 1px)',
             backgroundSize: '48px 48px',
           }}
         />
-
-        {/* Road shapes */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[32%] left-0 right-0 h-5 bg-white/60 rounded" />
-          <div className="absolute top-[60%] left-0 right-0 h-3.5 bg-white/50 rounded" />
-          <div className="absolute left-[30%] top-0 bottom-0 w-4 bg-white/60 rounded" />
-          <div className="absolute left-[65%] top-0 bottom-0 w-3 bg-white/50 rounded" />
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-0 right-0 top-[32%] h-5 rounded bg-white/60" />
+          <div className="absolute left-0 right-0 top-[60%] h-3.5 rounded bg-white/50" />
+          <div className="absolute bottom-0 left-[30%] top-0 w-4 rounded bg-white/60" />
+          <div className="absolute bottom-0 left-[65%] top-0 w-3 rounded bg-white/50" />
         </div>
 
-        {/* 3 km radius ring */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 border-2 border-dashed border-violet-400/40 rounded-full pointer-events-none" />
-
-        {/* My location dot */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute w-14 h-14 bg-violet-400/15 rounded-full animate-pulse" />
-            <div className="w-4 h-4 bg-violet-600 rounded-full border-[3px] border-white shadow-lg z-10" />
+        <div className="absolute left-4 right-4 top-4 z-20 rounded-2xl border border-gray-100 bg-white/95 p-3 shadow-md backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-full ${status === 'error' ? 'bg-rose-50' : 'bg-violet-50'}`}>
+              {status === 'locating' || status === 'loading' ? (
+                <LoaderCircle size={17} className="animate-spin text-violet-600" />
+              ) : status === 'error' ? (
+                <AlertCircle size={17} className="text-rose-500" />
+              ) : (
+                <MapPin size={17} className="text-violet-600" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-gray-800">내 위치 기반 관광정보</p>
+              <p className="mt-0.5 truncate text-[11px] text-gray-500">{message}</p>
+            </div>
+            <button
+              type="button"
+              onClick={locateMe}
+              disabled={status === 'locating' || status === 'loading'}
+              aria-label="현재 위치 다시 확인"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600 text-white shadow-sm disabled:opacity-50"
+            >
+              <Navigation size={16} />
+            </button>
           </div>
+          {coordinates && (
+            <p className="mt-2 border-t border-gray-100 pt-2 text-[10px] text-gray-400">
+              위도 {coordinates.latitude.toFixed(5)} · 경도 {coordinates.longitude.toFixed(5)} · 정확도 약 {Math.round(coordinates.accuracy)}m
+            </p>
+          )}
         </div>
 
-        {/* Restaurant pins */}
-        {restaurants.slice(0, 6).map((r, i) => {
-          const pos = PIN_POSITIONS[i];
-          const isActive = activePin === r.id;
-          const celeb = celebrities.find(c => c.group === r.recom[0]);
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed border-violet-400/40" />
+        {coordinates && (
+          <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2" aria-label="내 위치">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute h-14 w-14 animate-pulse rounded-full bg-violet-400/20" />
+              <div className="z-10 h-5 w-5 rounded-full border-[4px] border-white bg-violet-600 shadow-lg" />
+            </div>
+          </div>
+        )}
+
+        {pinPositions.map(place => {
+          const active = activePlaceId === place.id;
           return (
             <button
-              key={r.id}
-              onClick={() => setActivePin(isActive ? null : r.id)}
-              className="absolute flex flex-col items-center cursor-pointer"
-              style={{ top: pos.top, left: pos.left, transform: 'translate(-50%, -100%)' }}
+              type="button"
+              key={place.id}
+              onClick={() => setActivePlaceId(active ? null : place.id)}
+              className="absolute z-10 flex -translate-x-1/2 -translate-y-full flex-col items-center"
+              style={{ left: `${place.left}%`, top: `${place.top}%` }}
             >
-              {isActive && (
-                <div className="mb-1 bg-white rounded-xl px-3 py-1.5 shadow-lg border border-gray-100 text-xs font-bold text-gray-800 whitespace-nowrap">
-                  {r.name}
-                </div>
+              {active && (
+                <span className="mb-1 max-w-44 truncate rounded-xl border border-gray-100 bg-white px-3 py-1.5 text-xs font-bold text-gray-800 shadow-lg">
+                  {place.title}
+                </span>
               )}
-              <div
-                className={`px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 text-xs font-bold text-white bg-gradient-to-r ${
-                  celeb?.gradient ?? 'from-violet-500 to-purple-600'
-                } transition-transform ${isActive ? 'scale-110' : ''}`}
-              >
-                <Star size={9} className="fill-white text-white" />
-                {r.rating}
-              </div>
-              <div className="w-1.5 h-1.5 bg-violet-600 rounded-full mt-0.5" />
+              <span className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-orange-500 text-white shadow-md transition-transform ${active ? 'scale-125' : ''}`}>
+                <MapPin size={15} />
+              </span>
             </button>
           );
         })}
 
-        {/* Top search bar */}
-        <div className="absolute top-4 left-4 right-4 flex gap-2 z-10">
-          <div className="flex-1 flex items-center gap-2 bg-white/95 backdrop-blur-sm px-4 py-2.5 rounded-2xl shadow-md border border-gray-100">
-            <Search size={14} className="text-gray-400" />
-            <span className="text-sm text-gray-400">지도에서 맛집 검색</span>
-          </div>
-          <button className="w-10 h-10 bg-white/95 backdrop-blur-sm rounded-2xl shadow-md border border-gray-100 flex items-center justify-center">
-            <Navigation size={16} className="text-violet-600" />
-          </button>
-        </div>
-
-        {/* Range badge */}
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-md border border-gray-100 flex items-center gap-2 whitespace-nowrap">
-          <div className="w-2 h-2 bg-violet-600 rounded-full" />
-          <span className="text-xs font-semibold text-gray-600">내 위치 3km 이내</span>
-          <span className="text-xs font-extrabold text-violet-600">{restaurants.length}개</span>
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-gray-100 bg-white/95 px-4 py-2 shadow-md backdrop-blur-sm">
+          <span className="text-xs font-semibold text-gray-600">TourAPI 실시간 연동 · </span>
+          <span className="text-xs font-extrabold text-violet-600">관광지 {places.length}곳</span>
         </div>
       </div>
 
-      {/* Bottom panel */}
       <div
-        className={`absolute left-0 right-0 bg-white rounded-t-3xl shadow-2xl border-t border-gray-100 transition-all duration-300 ease-in-out z-20 ${
-          panelOpen ? 'bottom-0 h-72' : 'bottom-0 h-24'
-        }`}
+        className={`absolute bottom-0 left-0 right-0 z-20 rounded-t-3xl border-t border-gray-100 bg-white shadow-2xl transition-all duration-300 ${panelOpen ? 'h-72' : 'h-24'}`}
         style={{ marginBottom: '64px' }}
       >
-        {/* Handle */}
-        <button
-          onClick={() => setPanelOpen(p => !p)}
-          className="w-full flex flex-col items-center pt-3 pb-1 gap-1"
-        >
-          <div className="w-10 h-1 bg-gray-200 rounded-full" />
-          {!panelOpen
-            ? <ChevronUp size={14} className="text-gray-400" />
-            : <ChevronDown size={14} className="text-gray-400" />}
+        <button type="button" onClick={() => setPanelOpen(open => !open)} className="flex w-full flex-col items-center gap-1 pb-1 pt-3">
+          <div className="h-1 w-10 rounded-full bg-gray-200" />
+          {panelOpen ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronUp size={14} className="text-gray-400" />}
         </button>
 
         {!panelOpen ? (
-          <div className="px-5 flex items-center justify-between">
+          <div className="flex items-center justify-between px-5">
             <div>
-              <p className="text-[13px] font-bold text-gray-800">
-                근처 맛집 {restaurants.length}개 발견
-              </p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                위로 스와이프해서 목록 보기
-              </p>
+              <p className="text-[13px] font-bold text-gray-800">주변 관광지 {places.length}곳 발견</p>
+              <p className="mt-0.5 text-xs text-gray-400">위로 올려서 TourAPI 결과 보기</p>
             </div>
-            <div className="w-9 h-9 bg-violet-50 rounded-full flex items-center justify-center">
-              <ChevronUp size={16} className="text-violet-600" />
-            </div>
+            <ChevronUp size={18} className="text-violet-600" />
           </div>
         ) : (
-          <div className="overflow-y-auto h-[calc(100%-52px)] no-scrollbar px-4 space-y-2.5 pb-4">
-            {restaurants.map(r => (
-              <div
-                key={r.id}
-                className="flex items-center gap-3 bg-gray-50 rounded-2xl p-3"
+          <div className="h-[calc(100%-52px)] space-y-2.5 overflow-y-auto px-4 pb-4 no-scrollbar">
+            {places.length === 0 ? (
+              <div className="flex h-32 flex-col items-center justify-center text-center">
+                <MapPin size={24} className="mb-2 text-gray-300" />
+                <p className="text-sm font-semibold text-gray-500">{status === 'success' ? '주변 관광지가 없어요.' : '위치를 확인하면 관광지가 표시돼요.'}</p>
+              </div>
+            ) : places.map(place => (
+              <button
+                type="button"
+                key={place.id}
+                onClick={() => setActivePlaceId(place.id)}
+                className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left ${activePlaceId === place.id ? 'bg-violet-50 ring-1 ring-violet-200' : 'bg-gray-50'}`}
               >
                 <div
-                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${r.colorFrom} ${r.colorTo} flex-shrink-0`}
+                  className="h-12 w-12 flex-shrink-0 rounded-xl bg-gradient-to-br from-orange-200 to-amber-100 bg-cover bg-center"
+                  style={place.imageUrl ? { backgroundImage: `url(${place.imageUrl.replace(/^http:/, 'https:')})` } : undefined}
                 />
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 text-sm truncate">{r.name}</p>
-                  <p className="text-xs text-gray-400">
-                    {r.category} · {r.distance}
-                  </p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-gray-900">{place.title}</p>
+                  <p className="mt-0.5 truncate text-xs text-gray-400">{place.address || '주소 정보 없음'}</p>
                 </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <div className="flex items-center gap-0.5">
-                    <Star size={11} className="fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-bold text-gray-700">{r.rating}</span>
-                  </div>
-                  <button
-                    onClick={e => toggleLike(e, r.id)}
-                    className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100"
-                  >
-                    <Heart
-                      size={13}
-                      className={likedIds.has(r.id) ? 'fill-rose-500 text-rose-500' : 'text-gray-300'}
-                    />
-                  </button>
-                </div>
-              </div>
+                <span className="flex-shrink-0 text-xs font-bold text-violet-600">{formatDistance(place.distanceMeters)}</span>
+              </button>
             ))}
           </div>
         )}
