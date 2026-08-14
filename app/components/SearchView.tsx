@@ -10,8 +10,8 @@ type Props = {
 
 type FilterTab = 'all' | 'restaurant' | 'hotel' | 'spot';
 
-const RECENT_SEARCHES = ['BTS 강남 맛집', '아이브 추천', '홍대 카페'];
-const POPULAR_SEARCHES = ['BTS', '아이브', '르세라핌', '스키즈', '에스파'];
+const RECENT_SEARCHES = ['BTS 강남 맛집', '블랙핑크 추천', '홍대 카페'];
+const POPULAR_SEARCHES = ['블랙핑크', 'BTS', '세븐틴', '스트레이키즈', 'GD'];
 
 const MOCK_HOTELS = [
   { id: 1, name: '그랜드 인터컨티넨탈', distance: '0.8km', stars: 5, price: '₩250,000~' },

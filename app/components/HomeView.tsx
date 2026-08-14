@@ -9,11 +9,12 @@ import type { Celeb, Restaurant } from '../lib/types';
 type Props = {
   celebrities: Celeb[];
   restaurants: Restaurant[];
+  catalogStatus?: 'loading' | 'success' | 'error';
 };
 
 type Screen = 'celebs' | 'restaurants' | 'detail';
 
-export default function HomeView({ celebrities, restaurants }: Props) {
+export default function HomeView({ celebrities, restaurants, catalogStatus = 'success' }: Props) {
   const [screen, setScreen] = useState<Screen>('celebs');
   const [selectedCeleb, setSelectedCeleb] = useState<Celeb | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
@@ -137,6 +138,12 @@ export default function HomeView({ celebrities, restaurants }: Props) {
         어떤 셀럽의 맛집으로 떠나볼까요?
       </p>
 
+      {catalogStatus !== 'success' && (
+        <div className={`mx-5 mb-4 rounded-2xl px-4 py-3 text-xs font-semibold ${catalogStatus === 'error' ? 'bg-red-50 text-red-700' : 'bg-plum-50 text-plum-500'}`}>
+          {catalogStatus === 'error' ? '맛집 정보를 불러오지 못했어요. Supabase 권한 설정을 확인해 주세요.' : '셀럽 맛집을 불러오고 있어요…'}
+        </div>
+      )}
+
       {/* Celebrity badge grid */}
       <div className="px-5 grid grid-cols-2 gap-3">
         {celebrities.map(celeb => (
@@ -219,11 +226,13 @@ function RestaurantCard({
           </div>
         </div>
         <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-0.5">
-            <Star size={12} className="fill-neon-400 text-plum-700" />
-            <span className="text-sm font-bold text-plum-800">{r.rating}</span>
-            <span className="text-xs text-plum-400 ml-0.5">({r.reviewCount})</span>
-          </div>
+          {r.rating > 0 && (
+            <div className="flex items-center gap-0.5">
+              <Star size={12} className="fill-neon-400 text-plum-700" />
+              <span className="text-sm font-bold text-plum-800">{r.rating}</span>
+              <span className="text-xs text-plum-400 ml-0.5">({r.reviewCount})</span>
+            </div>
+          )}
           <div className="flex items-center gap-0.5">
             <MapPin size={10} className="text-plum-400" />
             <span className="text-xs text-plum-400">{r.distance}</span>
@@ -290,14 +299,22 @@ function Detail({
         </div>
 
         <div className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-plum-100">
-          <div className="flex items-center gap-1.5">
-            <Star size={17} className="fill-neon-400 text-plum-700" />
-            <span className="text-lg font-extrabold text-plum-900">{r.rating}</span>
-            <span className="text-sm text-plum-400">({r.reviewCount})</span>
-          </div>
-          <div className="w-px h-4 bg-plum-200" />
-          <span className="text-sm font-medium text-plum-600">{r.priceRange}</span>
-          <div className="w-px h-4 bg-plum-200" />
+          {r.rating > 0 && (
+            <>
+              <div className="flex items-center gap-1.5">
+                <Star size={17} className="fill-neon-400 text-plum-700" />
+                <span className="text-lg font-extrabold text-plum-900">{r.rating}</span>
+                <span className="text-sm text-plum-400">({r.reviewCount})</span>
+              </div>
+              <div className="w-px h-4 bg-plum-200" />
+            </>
+          )}
+          {r.priceRange && (
+            <>
+              <span className="text-sm font-medium text-plum-600">{r.priceRange}</span>
+              <div className="w-px h-4 bg-plum-200" />
+            </>
+          )}
           <div className="flex items-center gap-1">
             <MapPin size={13} className="text-plum-400" />
             <span className="text-sm text-plum-500">{r.distance}</span>
