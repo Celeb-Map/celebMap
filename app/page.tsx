@@ -10,12 +10,12 @@ import type { Celeb, Restaurant } from './lib/types';
 export type Tab = 'home' | 'search' | 'map' | 'mypage';
 
 const CELEBRITIES: Celeb[] = [
-  { id: 1, name: 'BTS', group: 'BTS', emoji: '💜', gradient: 'from-purple-500 to-indigo-600' },
-  { id: 2, name: '아이브', group: 'IVE', emoji: '🌸', gradient: 'from-rose-400 to-pink-500' },
-  { id: 3, name: '르세라핌', group: 'LE SSERAFIM', emoji: '🔥', gradient: 'from-orange-400 to-red-500' },
-  { id: 4, name: '스키즈', group: 'Stray Kids', emoji: '⚡', gradient: 'from-yellow-400 to-amber-500' },
-  { id: 5, name: '에스파', group: 'aespa', emoji: '🤖', gradient: 'from-cyan-400 to-teal-500' },
-  { id: 6, name: 'NewJeans', group: 'NewJeans', emoji: '🫧', gradient: 'from-emerald-400 to-green-500' },
+  { id: 1, name: 'BTS', group: 'BTS', emoji: '💜', gradient: 'from-plum-800 to-plum-600' },
+  { id: 2, name: '아이브', group: 'IVE', emoji: '🌸', gradient: 'from-plum-700 to-plum-500' },
+  { id: 3, name: '르세라핌', group: 'LE SSERAFIM', emoji: '🔥', gradient: 'from-plum-900 to-plum-700' },
+  { id: 4, name: '스키즈', group: 'Stray Kids', emoji: '⚡', gradient: 'from-plum-600 to-plum-400' },
+  { id: 5, name: '에스파', group: 'aespa', emoji: '🤖', gradient: 'from-plum-800 to-plum-500' },
+  { id: 6, name: 'NewJeans', group: 'NewJeans', emoji: '🫧', gradient: 'from-plum-700 to-plum-400' },
 ];
 
 const RESTAURANTS: Restaurant[] = [
@@ -33,8 +33,8 @@ const RESTAURANTS: Restaurant[] = [
     priceRange: '₩₩₩',
     tags: ['분위기 맛집', '데이트'],
     liked: false,
-    colorFrom: 'from-purple-200',
-    colorTo: 'to-pink-100',
+    colorFrom: 'from-plum-300',
+    colorTo: 'to-plum-50',
   },
   {
     id: 2,
@@ -50,8 +50,8 @@ const RESTAURANTS: Restaurant[] = [
     priceRange: '₩₩₩₩',
     tags: ['특별한 날', '오션뷰'],
     liked: true,
-    colorFrom: 'from-blue-200',
-    colorTo: 'to-cyan-100',
+    colorFrom: 'from-plum-400',
+    colorTo: 'to-plum-100',
   },
   {
     id: 3,
@@ -67,8 +67,8 @@ const RESTAURANTS: Restaurant[] = [
     priceRange: '₩₩',
     tags: ['인스타감성', '달달함'],
     liked: false,
-    colorFrom: 'from-yellow-200',
-    colorTo: 'to-orange-100',
+    colorFrom: 'from-neon-200',
+    colorTo: 'to-plum-50',
   },
   {
     id: 4,
@@ -84,8 +84,8 @@ const RESTAURANTS: Restaurant[] = [
     priceRange: '₩₩',
     tags: ['전통', '가성비'],
     liked: true,
-    colorFrom: 'from-green-200',
-    colorTo: 'to-emerald-100',
+    colorFrom: 'from-plum-200',
+    colorTo: 'to-neon-100',
   },
   {
     id: 5,
@@ -101,8 +101,8 @@ const RESTAURANTS: Restaurant[] = [
     priceRange: '₩₩',
     tags: ['줄서는 맛집', '진한 국물'],
     liked: false,
-    colorFrom: 'from-red-200',
-    colorTo: 'to-orange-100',
+    colorFrom: 'from-neon-300',
+    colorTo: 'to-plum-100',
   },
   {
     id: 6,
@@ -118,8 +118,8 @@ const RESTAURANTS: Restaurant[] = [
     priceRange: '₩₩₩',
     tags: ['뷰 맛집', '야경'],
     liked: false,
-    colorFrom: 'from-violet-200',
-    colorTo: 'to-purple-100',
+    colorFrom: 'from-plum-500',
+    colorTo: 'to-plum-200',
   },
 ];
 
@@ -127,7 +127,7 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
 
   return (
-    <div className="flex flex-col h-screen w-full bg-[#f8f7ff] max-w-md mx-auto border-x border-gray-200/40 overflow-hidden relative shadow-2xl">
+    <div className="flex flex-col h-screen w-full bg-canvas max-w-md mx-auto border-x border-plum-100 overflow-hidden relative shadow-2xl">
       <div className="flex-1 overflow-y-auto no-scrollbar">
         {activeTab === 'home' && (
           <HomeView celebrities={CELEBRITIES} restaurants={RESTAURANTS} />

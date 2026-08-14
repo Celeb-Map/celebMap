@@ -16,7 +16,7 @@ const tabs = [
 
 export default function Navbar({ activeTab, setActiveTab }: Props) {
   return (
-    <nav className="absolute bottom-0 w-full bg-white/95 backdrop-blur-md border-t border-gray-100 px-2 pt-2 pb-4 flex justify-around items-center z-50">
+    <nav className="absolute bottom-0 w-full bg-white/95 backdrop-blur-md border-t border-plum-100 px-2 pt-2 pb-4 flex justify-around items-center z-50">
       {tabs.map(tab => {
         const Icon = tab.icon;
         const active = activeTab === tab.id;
@@ -24,14 +24,17 @@ export default function Navbar({ activeTab, setActiveTab }: Props) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-2xl transition-all cursor-pointer"
+            className="relative flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-2xl transition-all cursor-pointer"
           >
+            {active && (
+              <span className="absolute -top-2 h-1 w-8 rounded-full bg-neon-400" />
+            )}
             <Icon
               size={22}
               strokeWidth={active ? 2.5 : 1.8}
-              className={`transition-colors ${active ? 'text-violet-600' : 'text-gray-400'}`}
+              className={`transition-colors ${active ? 'text-plum-700' : 'text-plum-300'}`}
             />
-            <span className={`text-[10px] font-semibold tracking-tight transition-colors ${active ? 'text-violet-600' : 'text-gray-400'}`}>
+            <span className={`text-[10px] font-semibold tracking-tight transition-colors ${active ? 'text-plum-700' : 'text-plum-300'}`}>
               {tab.label}
             </span>
           </button>

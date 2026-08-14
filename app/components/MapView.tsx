@@ -123,12 +123,12 @@ export default function MapView() {
 
   return (
     <div className="relative flex h-[calc(100vh-64px)] flex-col">
-      <div className="relative flex-1 overflow-hidden bg-[#e8e3d5]">
+      <div className="relative flex-1 overflow-hidden bg-plum-50">
         <div
           className="absolute inset-0 opacity-25"
           style={{
             backgroundImage:
-              'linear-gradient(#aaa 1px, transparent 1px), linear-gradient(90deg, #aaa 1px, transparent 1px)',
+              'linear-gradient(#b99cc4 1px, transparent 1px), linear-gradient(90deg, #b99cc4 1px, transparent 1px)',
             backgroundSize: '48px 48px',
           }}
         />
@@ -139,44 +139,44 @@ export default function MapView() {
           <div className="absolute bottom-0 left-[65%] top-0 w-3 rounded bg-white/50" />
         </div>
 
-        <div className="absolute left-4 right-4 top-4 z-20 rounded-2xl border border-gray-100 bg-white/95 p-3 shadow-md backdrop-blur-sm">
+        <div className="absolute left-4 right-4 top-4 z-20 rounded-2xl border border-plum-100 bg-white/95 p-3 shadow-md backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-full ${status === 'error' ? 'bg-rose-50' : 'bg-violet-50'}`}>
+            <div className={`flex h-9 w-9 items-center justify-center rounded-full ${status === 'error' ? 'bg-neon-400' : 'bg-plum-50'}`}>
               {status === 'locating' || status === 'loading' ? (
-                <LoaderCircle size={17} className="animate-spin text-violet-600" />
+                <LoaderCircle size={17} className="animate-spin text-plum-700" />
               ) : status === 'error' ? (
-                <AlertCircle size={17} className="text-rose-500" />
+                <AlertCircle size={17} className="text-plum-900" />
               ) : (
-                <MapPin size={17} className="text-violet-600" />
+                <MapPin size={17} className="text-plum-700" />
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-gray-800">내 위치 기반 관광정보</p>
-              <p className="mt-0.5 truncate text-[11px] text-gray-500">{message}</p>
+              <p className="text-xs font-bold text-plum-900">내 위치 기반 관광정보</p>
+              <p className="mt-0.5 truncate text-[11px] text-plum-500">{message}</p>
             </div>
             <button
               type="button"
               onClick={locateMe}
               disabled={status === 'locating' || status === 'loading'}
               aria-label="현재 위치 다시 확인"
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600 text-white shadow-sm disabled:opacity-50"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-plum-700 text-neon-400 shadow-sm disabled:opacity-50"
             >
               <Navigation size={16} />
             </button>
           </div>
           {coordinates && (
-            <p className="mt-2 border-t border-gray-100 pt-2 text-[10px] text-gray-400">
+            <p className="mt-2 border-t border-plum-100 pt-2 text-[10px] text-plum-400">
               위도 {coordinates.latitude.toFixed(5)} · 경도 {coordinates.longitude.toFixed(5)} · 정확도 약 {Math.round(coordinates.accuracy)}m
             </p>
           )}
         </div>
 
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed border-violet-400/40" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed border-plum-400/40" />
         {coordinates && (
           <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2" aria-label="내 위치">
             <div className="relative flex items-center justify-center">
-              <div className="absolute h-14 w-14 animate-pulse rounded-full bg-violet-400/20" />
-              <div className="z-10 h-5 w-5 rounded-full border-[4px] border-white bg-violet-600 shadow-lg" />
+              <div className="absolute h-14 w-14 animate-pulse rounded-full bg-neon-400/30" />
+              <div className="z-10 h-5 w-5 rounded-full border-[4px] border-neon-400 bg-plum-700 shadow-lg" />
             </div>
           </div>
         )}
@@ -192,63 +192,63 @@ export default function MapView() {
               style={{ left: `${place.left}%`, top: `${place.top}%` }}
             >
               {active && (
-                <span className="mb-1 max-w-44 truncate rounded-xl border border-gray-100 bg-white px-3 py-1.5 text-xs font-bold text-gray-800 shadow-lg">
+                <span className="mb-1 max-w-44 truncate rounded-xl bg-plum-900 px-3 py-1.5 text-xs font-bold text-neon-400 shadow-lg">
                   {place.title}
                 </span>
               )}
-              <span className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-orange-500 text-white shadow-md transition-transform ${active ? 'scale-125' : ''}`}>
+              <span className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-white shadow-md transition-transform ${active ? 'scale-125 bg-neon-400 text-plum-900' : 'bg-plum-700 text-neon-400'}`}>
                 <MapPin size={15} />
               </span>
             </button>
           );
         })}
 
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-gray-100 bg-white/95 px-4 py-2 shadow-md backdrop-blur-sm">
-          <span className="text-xs font-semibold text-gray-600">TourAPI 실시간 연동 · </span>
-          <span className="text-xs font-extrabold text-violet-600">관광지 {places.length}곳</span>
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-plum-100 bg-white/95 px-4 py-2 shadow-md backdrop-blur-sm">
+          <span className="text-xs font-semibold text-plum-500">TourAPI 실시간 연동 · </span>
+          <span className="text-xs font-extrabold text-plum-700">관광지 {places.length}곳</span>
         </div>
       </div>
 
       <div
-        className={`absolute bottom-0 left-0 right-0 z-20 rounded-t-3xl border-t border-gray-100 bg-white shadow-2xl transition-all duration-300 ${panelOpen ? 'h-72' : 'h-24'}`}
+        className={`absolute bottom-0 left-0 right-0 z-20 rounded-t-3xl border-t border-plum-100 bg-white shadow-2xl transition-all duration-300 ${panelOpen ? 'h-72' : 'h-24'}`}
         style={{ marginBottom: '64px' }}
       >
         <button type="button" onClick={() => setPanelOpen(open => !open)} className="flex w-full flex-col items-center gap-1 pb-1 pt-3">
-          <div className="h-1 w-10 rounded-full bg-gray-200" />
-          {panelOpen ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronUp size={14} className="text-gray-400" />}
+          <div className="h-1 w-10 rounded-full bg-neon-400" />
+          {panelOpen ? <ChevronDown size={14} className="text-plum-400" /> : <ChevronUp size={14} className="text-plum-400" />}
         </button>
 
         {!panelOpen ? (
           <div className="flex items-center justify-between px-5">
             <div>
-              <p className="text-[13px] font-bold text-gray-800">주변 관광지 {places.length}곳 발견</p>
-              <p className="mt-0.5 text-xs text-gray-400">위로 올려서 TourAPI 결과 보기</p>
+              <p className="text-[13px] font-bold text-plum-900">주변 관광지 {places.length}곳 발견</p>
+              <p className="mt-0.5 text-xs text-plum-400">위로 올려서 TourAPI 결과 보기</p>
             </div>
-            <ChevronUp size={18} className="text-violet-600" />
+            <ChevronUp size={18} className="text-plum-700" />
           </div>
         ) : (
           <div className="h-[calc(100%-52px)] space-y-2.5 overflow-y-auto px-4 pb-4 no-scrollbar">
             {places.length === 0 ? (
               <div className="flex h-32 flex-col items-center justify-center text-center">
-                <MapPin size={24} className="mb-2 text-gray-300" />
-                <p className="text-sm font-semibold text-gray-500">{status === 'success' ? '주변 관광지가 없어요.' : '위치를 확인하면 관광지가 표시돼요.'}</p>
+                <MapPin size={24} className="mb-2 text-plum-300" />
+                <p className="text-sm font-semibold text-plum-500">{status === 'success' ? '주변 관광지가 없어요.' : '위치를 확인하면 관광지가 표시돼요.'}</p>
               </div>
             ) : places.map(place => (
               <button
                 type="button"
                 key={place.id}
                 onClick={() => setActivePlaceId(place.id)}
-                className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left ${activePlaceId === place.id ? 'bg-violet-50 ring-1 ring-violet-200' : 'bg-gray-50'}`}
+                className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left ${activePlaceId === place.id ? 'bg-plum-50 ring-2 ring-neon-400' : 'bg-plum-50/60'}`}
               >
                 <div
-                  className="h-12 w-12 flex-shrink-0 rounded-xl bg-gradient-to-br from-orange-200 to-amber-100 bg-cover bg-center"
+                  className="h-12 w-12 flex-shrink-0 rounded-xl bg-gradient-to-br from-plum-300 to-plum-100 bg-cover bg-center"
                   style={place.imageUrl ? { backgroundImage: `url(${place.imageUrl.replace(/^http:/, 'https:')})` } : undefined}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-gray-900">{place.title}</p>
-                  <p className="mt-0.5 truncate text-xs text-gray-400">{place.address || '주소 정보 없음'}</p>
+                  <p className="truncate text-sm font-bold text-plum-900">{place.title}</p>
+                  <p className="mt-0.5 truncate text-xs text-plum-400">{place.address || '주소 정보 없음'}</p>
                 </div>
-                <span className="flex-shrink-0 text-xs font-bold text-violet-600">{formatDistance(place.distanceMeters)}</span>
+                <span className="flex-shrink-0 text-xs font-bold text-plum-700">{formatDistance(place.distanceMeters)}</span>
               </button>
             ))}
           </div>

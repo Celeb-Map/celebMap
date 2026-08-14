@@ -1,8 +1,36 @@
 @import "tailwindcss";
 
+/* ── 브랜드 테마 팔레트 ──
+   plum  : #3C1A47 (plum-700) — 주요 버튼/아이콘/텍스트 강조
+   neon  : #B6FF00 (neon-400) — 포인트 강조, plum 위에 얹어 사용
+   화면 바탕은 화이트(canvas), 카드는 순백(white)으로 층을 나눈다. */
+@theme {
+  --color-plum-50: #f7f3f9;
+  --color-plum-100: #ede3f0;
+  --color-plum-200: #d8c6df;
+  --color-plum-300: #b99cc4;
+  --color-plum-400: #9270a2;
+  --color-plum-500: #6e4a80;
+  --color-plum-600: #543063;
+  --color-plum-700: #3c1a47;
+  --color-plum-800: #2c1035;
+  --color-plum-900: #1d0824;
+
+  --color-neon-50: #faffe8;
+  --color-neon-100: #f1ffc2;
+  --color-neon-200: #e3ff8c;
+  --color-neon-300: #d0ff4d;
+  --color-neon-400: #b6ff00;
+  --color-neon-500: #a2e600;
+  --color-neon-600: #85be00;
+  --color-neon-700: #649000;
+
+  --color-canvas: #fbf9fc;
+}
+
 :root {
-  --background: #f8f7ff;
-  --foreground: #111827;
+  --background: var(--color-canvas);
+  --foreground: var(--color-plum-900);
 }
 
 @theme inline {
