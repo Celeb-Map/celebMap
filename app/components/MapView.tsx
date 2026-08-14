@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   ChevronDown,
-  ChevronUp,
   LoaderCircle,
   MapPin,
   Navigation,
@@ -203,31 +202,39 @@ export default function MapView() {
           );
         })}
 
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-plum-100 bg-white/95 px-4 py-2 shadow-md backdrop-blur-sm">
-          <span className="text-xs font-semibold text-plum-500">TourAPI 실시간 연동 · </span>
-          <span className="text-xs font-extrabold text-plum-700">관광지 {places.length}곳</span>
-        </div>
       </div>
 
       <div
-        className={`absolute bottom-0 left-0 right-0 z-20 rounded-t-3xl border-t border-plum-100 bg-white shadow-2xl transition-all duration-300 ${panelOpen ? 'h-72' : 'h-24'}`}
-        style={{ marginBottom: '64px' }}
+        className={`absolute bottom-0 left-0 right-0 z-20 overflow-hidden rounded-t-[28px] border border-b-0 border-plum-100 bg-white/95 shadow-[0_-12px_40px_rgba(60,26,71,0.14)] backdrop-blur-xl transition-[height] duration-300 ease-out ${panelOpen ? 'h-80' : 'h-[88px]'}`}
       >
-        <button type="button" onClick={() => setPanelOpen(open => !open)} className="flex w-full flex-col items-center gap-1 pb-1 pt-3">
-          <div className="h-1 w-10 rounded-full bg-neon-400" />
-          {panelOpen ? <ChevronDown size={14} className="text-plum-400" /> : <ChevronUp size={14} className="text-plum-400" />}
+        <button
+          type="button"
+          onClick={() => setPanelOpen(open => !open)}
+          aria-expanded={panelOpen}
+          aria-controls="nearby-places-panel"
+          className="group flex h-[88px] w-full items-center gap-3 px-5 text-left outline-none transition-colors hover:bg-plum-50/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neon-400"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-plum-700 text-neon-400 shadow-sm">
+            <MapPin size={18} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-2">
+              <span className="text-sm font-extrabold text-plum-900">주변 관광지</span>
+              <span className="rounded-full bg-neon-400/20 px-2 py-0.5 text-[11px] font-extrabold text-plum-700">
+                {places.length}곳
+              </span>
+            </span>
+            <span className="mt-1 block truncate text-xs text-plum-400">
+              {panelOpen ? '지도에서 핀을 선택하거나 목록을 둘러보세요' : '눌러서 관광지 목록 보기'}
+            </span>
+          </span>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-plum-100 bg-white text-plum-600 shadow-sm">
+            <ChevronDown size={18} className={`transition-transform duration-300 ${panelOpen ? '' : 'rotate-180'}`} />
+          </span>
         </button>
 
-        {!panelOpen ? (
-          <div className="flex items-center justify-between px-5">
-            <div>
-              <p className="text-[13px] font-bold text-plum-900">주변 관광지 {places.length}곳 발견</p>
-              <p className="mt-0.5 text-xs text-plum-400">위로 올려서 TourAPI 결과 보기</p>
-            </div>
-            <ChevronUp size={18} className="text-plum-700" />
-          </div>
-        ) : (
-          <div className="h-[calc(100%-52px)] space-y-2.5 overflow-y-auto px-4 pb-4 no-scrollbar">
+        {panelOpen && (
+          <div id="nearby-places-panel" className="h-[calc(100%-88px)] space-y-2.5 overflow-y-auto border-t border-plum-100/80 px-4 pb-5 pt-3 no-scrollbar">
             {places.length === 0 ? (
               <div className="flex h-32 flex-col items-center justify-center text-center">
                 <MapPin size={24} className="mb-2 text-plum-300" />
@@ -238,7 +245,7 @@ export default function MapView() {
                 type="button"
                 key={place.id}
                 onClick={() => setActivePlaceId(place.id)}
-                className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left ${activePlaceId === place.id ? 'bg-plum-50 ring-2 ring-neon-400' : 'bg-plum-50/60'}`}
+                className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-neon-400 ${activePlaceId === place.id ? 'border-neon-400 bg-neon-50 shadow-sm' : 'border-transparent bg-plum-50/70 hover:border-plum-200 hover:bg-plum-50'}`}
               >
                 <div
                   className="h-12 w-12 flex-shrink-0 rounded-xl bg-gradient-to-br from-plum-300 to-plum-100 bg-cover bg-center"
@@ -248,7 +255,7 @@ export default function MapView() {
                   <p className="truncate text-sm font-bold text-plum-900">{place.title}</p>
                   <p className="mt-0.5 truncate text-xs text-plum-400">{place.address || '주소 정보 없음'}</p>
                 </div>
-                <span className="flex-shrink-0 text-xs font-bold text-plum-700">{formatDistance(place.distanceMeters)}</span>
+                <span className="flex-shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-extrabold text-plum-700 shadow-sm">{formatDistance(place.distanceMeters)}</span>
               </button>
             ))}
           </div>
