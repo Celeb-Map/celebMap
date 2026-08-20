@@ -1,7 +1,8 @@
 "use client";
-import { useState } from 'react';
+import { useState, type MouseEvent } from 'react';
 import { Search, X, MapPin, Star, Building2, Trees, Route, ChevronRight } from 'lucide-react';
 import type { Celeb, Restaurant } from '../lib/types';
+import { RestaurantDetail } from './HomeView';
 
 type Props = {
   celebrities: Celeb[];
@@ -35,6 +36,32 @@ const FILTER_TABS: { id: FilterTab; label: string }[] = [
 export default function SearchView({ celebrities, restaurants }: Props) {
   const [query, setQuery] = useState('');
   const [filterTab, setFilterTab] = useState<FilterTab>('all');
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+  const [likedIds, setLikedIds] = useState<Set<number>>(
+    new Set(restaurants.filter(r => r.liked).map(r => r.id))
+  );
+
+  const toggleLike = (e: MouseEvent, id: number) => {
+    e.stopPropagation();
+    setLikedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  if (selectedRestaurant) {
+    return (
+      <RestaurantDetail
+        restaurant={selectedRestaurant}
+        celebrities={celebrities}
+        liked={likedIds.has(selectedRestaurant.id)}
+        onToggleLike={e => toggleLike(e, selectedRestaurant.id)}
+        onBack={() => setSelectedRestaurant(null)}
+      />
+    );
+  }
 
   const hasQuery = query.trim().length > 0;
 
@@ -166,9 +193,11 @@ export default function SearchView({ celebrities, restaurants }: Props) {
               ) : (
                 <div className="space-y-2.5">
                   {matchedRestaurants.map(r => (
-                    <div
+                    <button
                       key={r.id}
-                      className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-plum-100"
+                      type="button"
+                      onClick={() => setSelectedRestaurant(r)}
+                      className="w-full bg-white rounded-2xl p-4 flex items-center gap-4 text-left shadow-sm border border-plum-100 cursor-pointer active:scale-[0.99] transition-transform"
                     >
                       <div
                         className={`w-14 h-14 rounded-xl bg-gradient-to-br ${r.colorFrom} ${r.colorTo} flex-shrink-0`}
@@ -196,7 +225,7 @@ export default function SearchView({ celebrities, restaurants }: Props) {
                         <Star size={12} className="fill-neon-400 text-plum-700" />
                         <span className="text-sm font-bold text-plum-800">{r.rating}</span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}

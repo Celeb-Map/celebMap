@@ -48,7 +48,7 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
   /* ── 상세 화면 ── */
   if (screen === 'detail' && selectedRestaurant) {
     return (
-      <Detail
+      <RestaurantDetail
         restaurant={selectedRestaurant}
         celebrities={celebrities}
         liked={likedIds.has(selectedRestaurant.id)}
@@ -243,7 +243,7 @@ function RestaurantCard({
   );
 }
 
-function Detail({
+export function RestaurantDetail({
   restaurant: r,
   celebrities,
   liked,
@@ -340,7 +340,7 @@ function Detail({
 
         <div className="flex gap-3 pb-4">
           <button className="flex-1 py-4 bg-plum-700 text-neon-400 rounded-2xl font-bold shadow-lg shadow-plum-200/60 flex items-center justify-center gap-2">
-            <Navigation size={18} /> 길 안내
+            <Navigation size={18} /> 위치보기
           </button>
           <button
             onClick={onToggleLike}
