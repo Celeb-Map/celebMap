@@ -1,5 +1,6 @@
 "use client";
 import { useState, type MouseEvent, type ReactNode } from 'react';
+import Link from 'next/link';
 import {
   Bell, ChevronLeft, ChevronRight, Heart,
   MapPin, Star, Clock, Coffee, Navigation,
@@ -10,11 +11,12 @@ type Props = {
   celebrities: Celeb[];
   restaurants: Restaurant[];
   catalogStatus?: 'loading' | 'success' | 'error';
+  catalogError?: string;
 };
 
 type Screen = 'celebs' | 'restaurants' | 'detail';
 
-export default function HomeView({ celebrities, restaurants, catalogStatus = 'success' }: Props) {
+export default function HomeView({ celebrities, restaurants, catalogStatus = 'success', catalogError }: Props) {
   const [screen, setScreen] = useState<Screen>('celebs');
   const [selectedCeleb, setSelectedCeleb] = useState<Celeb | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
@@ -140,7 +142,7 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
 
       {catalogStatus !== 'success' && (
         <div className={`mx-5 mb-4 rounded-2xl px-4 py-3 text-xs font-semibold ${catalogStatus === 'error' ? 'bg-red-50 text-red-700' : 'bg-plum-50 text-plum-500'}`}>
-          {catalogStatus === 'error' ? '맛집 정보를 불러오지 못했어요. Supabase 권한 설정을 확인해 주세요.' : '셀럽 맛집을 불러오고 있어요…'}
+          {catalogStatus === 'error' ? (catalogError ?? '맛집 정보를 불러오지 못했어요. Supabase 권한 설정을 확인해 주세요.') : '셀럽 맛집을 불러오고 있어요…'}
         </div>
       )}
 
@@ -256,6 +258,17 @@ export function RestaurantDetail({
   onToggleLike: (e: MouseEvent) => void;
   onBack: () => void;
 }) {
+  const hasCoordinates = r.latitude !== null && r.longitude !== null;
+  const mapHref = {
+    pathname: `/restaurants/${r.id}/map`,
+    query: {
+      name: r.name,
+      address: r.location,
+      latitude: r.latitude?.toString() ?? '',
+      longitude: r.longitude?.toString() ?? '',
+    },
+  };
+
   return (
     <div className="pb-28">
       <div className={`h-64 bg-gradient-to-br ${r.colorFrom} ${r.colorTo} relative`}>
@@ -339,9 +352,23 @@ export function RestaurantDetail({
         </div>
 
         <div className="flex gap-3 pb-4">
-          <button className="flex-1 py-4 bg-plum-700 text-neon-400 rounded-2xl font-bold shadow-lg shadow-plum-200/60 flex items-center justify-center gap-2">
-            <Navigation size={18} /> 위치보기
-          </button>
+          {hasCoordinates ? (
+            <Link
+              href={mapHref}
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-plum-700 py-4 font-bold text-neon-400 shadow-lg shadow-plum-200/60"
+            >
+              <Navigation size={18} /> 위치보기
+            </Link>
+          ) : (
+            <button
+              type="button"
+              disabled
+              title="등록된 위도·경도가 없습니다."
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-plum-300 py-4 font-bold text-white disabled:cursor-not-allowed"
+            >
+              <Navigation size={18} /> 좌표 정보 없음
+            </button>
+          )}
           <button
             onClick={onToggleLike}
             className={`w-14 rounded-2xl flex items-center justify-center border-2 transition-colors ${

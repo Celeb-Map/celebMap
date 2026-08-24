@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -11,6 +12,8 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const kakaoMapKey = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
 
 export const metadata: Metadata = {
   title: "CelebMap — 셀럽 추천 맛집 여행",
@@ -31,6 +34,12 @@ export default function RootLayout({
         <div className="flex-1 w-full flex items-center justify-center">
           {children}
         </div>
+        {kakaoMapKey && (
+          <Script
+            src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(kakaoMapKey)}&autoload=false`}
+            strategy="beforeInteractive"
+          />
+        )}
       </body>
     </html>
   );

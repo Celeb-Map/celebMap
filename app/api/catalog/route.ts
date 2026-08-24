@@ -16,6 +16,12 @@ type RestaurantRow = {
   business_hours: string | null;
   status: string | null;
   notes: string | null;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  lat?: number | string | null;
+  lng?: number | string | null;
+  mapy?: number | string | null;
+  mapx?: number | string | null;
 };
 
 type RecommendationRow = {
@@ -41,11 +47,20 @@ function identifyGroup(celebrity: CelebrityRow) {
   return GROUPS.find(group => group.aliases.some(alias => haystack.includes(alias.toLocaleLowerCase())))?.name;
 }
 
+function parseCoordinate(...values: Array<number | string | null | undefined>) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === '') continue;
+    const coordinate = Number(value);
+    if (Number.isFinite(coordinate)) return coordinate;
+  }
+  return null;
+}
+
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
     return Response.json({ message: 'Supabase 환경 변수가 설정되지 않았습니다.' }, { status: 500 });
@@ -57,7 +72,7 @@ export async function GET() {
 
   const [celebritiesResult, restaurantsResult, recommendationsResult] = await Promise.all([
     supabase.from('celebrities').select('id, name_ko, name_en, group_name'),
-    supabase.from('restaurant').select('id, name_ko, category, address, business_hours, status, notes').order('id'),
+    supabase.from('restaurant').select('*').order('id'),
     supabase.from('celebrity_restaurants').select('celebrity_id, restaurant_id'),
   ]);
 
@@ -67,7 +82,23 @@ export async function GET() {
   }
 
   const celebrities = (celebritiesResult.data ?? []) as CelebrityRow[];
+  const restaurantRows = (restaurantsResult.data ?? []) as RestaurantRow[];
   const recommendations = (recommendationsResult.data ?? []) as RecommendationRow[];
+
+  if (celebrities.length === 0 || restaurantRows.length === 0 || recommendations.length === 0) {
+    const emptyTables = [
+      celebrities.length === 0 && 'celebrities',
+      restaurantRows.length === 0 && 'restaurant',
+      recommendations.length === 0 && 'celebrity_restaurants',
+    ].filter((table): table is string => Boolean(table));
+
+    return Response.json(
+      {
+        message: `Supabase에서 ${emptyTables.join(', ')} 데이터를 읽지 못했습니다. 테이블 데이터와 anon SELECT RLS 정책을 확인하거나 SUPABASE_SERVICE_ROLE_KEY를 서버 환경 변수로 설정해 주세요.`,
+      },
+      { status: 502 },
+    );
+  }
   const groupByCelebrityId = new Map<number, string>();
   celebrities.forEach(celebrity => {
     const group = identifyGroup(celebrity);
@@ -84,7 +115,7 @@ export async function GET() {
     groupsByRestaurantId.set(recommendation.restaurant_id, groups);
   });
 
-  const restaurants: Restaurant[] = ((restaurantsResult.data ?? []) as RestaurantRow[])
+  const restaurants: Restaurant[] = restaurantRows
     .map((restaurant, index) => ({
       id: restaurant.id,
       name: restaurant.name_ko ?? '이름 없는 맛집',
@@ -94,6 +125,8 @@ export async function GET() {
       reviewCount: 0,
       recom: [...(groupsByRestaurantId.get(restaurant.id) ?? [])],
       location: restaurant.address ?? '주소 정보 없음',
+      latitude: parseCoordinate(restaurant.latitude, restaurant.lat, restaurant.mapy),
+      longitude: parseCoordinate(restaurant.longitude, restaurant.lng, restaurant.mapx),
       hours: restaurant.business_hours ?? '영업시간 정보 없음',
       breakTime: null,
       priceRange: '',
@@ -103,6 +136,15 @@ export async function GET() {
       colorTo: index % 3 === 0 ? 'to-neon-100' : 'to-plum-50',
     }))
     .filter(restaurant => restaurant.recom.length > 0);
+
+  if (restaurants.length === 0) {
+    return Response.json(
+      {
+        message: '맛집 데이터는 있지만 셀럽 연결 결과가 0개입니다. celebrity_restaurants의 ID와 celebrities의 이름/그룹 값을 확인해 주세요.',
+      },
+      { status: 502 },
+    );
+  }
 
   return Response.json({ restaurants });
 }

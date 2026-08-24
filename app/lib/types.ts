@@ -15,6 +15,8 @@ export type Restaurant = {
   reviewCount: number;
   recom: string[];
   location: string;
+  latitude: number | null;
+  longitude: number | null;
   hours: string;
   breakTime?: string | null;
   priceRange: string;

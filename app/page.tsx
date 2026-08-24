@@ -22,6 +22,7 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [catalogStatus, setCatalogStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [catalogError, setCatalogError] = useState<string>();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -30,10 +31,12 @@ export default function Page() {
         const data = await response.json() as { restaurants?: Restaurant[]; message?: string };
         if (!response.ok) throw new Error(data.message ?? '맛집 정보를 불러오지 못했습니다.');
         setRestaurants(data.restaurants ?? []);
+        setCatalogError(undefined);
         setCatalogStatus('success');
       })
       .catch(error => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
+        setCatalogError(error instanceof Error ? error.message : '맛집 정보를 불러오지 못했습니다.');
         setCatalogStatus('error');
       });
 
@@ -44,7 +47,7 @@ export default function Page() {
     <div className="flex flex-col h-screen w-full bg-canvas max-w-md mx-auto border-x border-plum-100 overflow-hidden relative shadow-2xl">
       <div className="flex-1 overflow-y-auto no-scrollbar">
         {activeTab === 'home' && (
-          <HomeView celebrities={CELEBRITIES} restaurants={restaurants} catalogStatus={catalogStatus} />
+          <HomeView celebrities={CELEBRITIES} restaurants={restaurants} catalogStatus={catalogStatus} catalogError={catalogError} />
         )}
         {activeTab === 'search' && (
           <SearchView celebrities={CELEBRITIES} restaurants={restaurants} />
