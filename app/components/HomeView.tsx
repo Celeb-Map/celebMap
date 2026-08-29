@@ -12,14 +12,14 @@ type Props = {
   restaurants: Restaurant[];
   catalogStatus?: 'loading' | 'success' | 'error';
   catalogError?: string;
+  onSelectRestaurant: (restaurant: Restaurant) => void;
 };
 
-type Screen = 'celebs' | 'restaurants' | 'detail';
+type Screen = 'celebs' | 'restaurants';
 
-export default function HomeView({ celebrities, restaurants, catalogStatus = 'success', catalogError }: Props) {
+export default function HomeView({ celebrities, restaurants, catalogStatus = 'success', catalogError, onSelectRestaurant }: Props) {
   const [screen, setScreen] = useState<Screen>('celebs');
   const [selectedCeleb, setSelectedCeleb] = useState<Celeb | null>(null);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [likedIds, setLikedIds] = useState<Set<number>>(
     new Set(restaurants.filter(r => r.liked).map(r => r.id))
   );
@@ -32,7 +32,8 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
     e.stopPropagation();
     setLikedIds(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -41,24 +42,6 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
     setSelectedCeleb(celeb);
     setScreen('restaurants');
   };
-
-  const goToDetail = (r: Restaurant) => {
-    setSelectedRestaurant(r);
-    setScreen('detail');
-  };
-
-  /* ── 상세 화면 ── */
-  if (screen === 'detail' && selectedRestaurant) {
-    return (
-      <RestaurantDetail
-        restaurant={selectedRestaurant}
-        celebrities={celebrities}
-        liked={likedIds.has(selectedRestaurant.id)}
-        onToggleLike={e => toggleLike(e, selectedRestaurant.id)}
-        onBack={() => setScreen('restaurants')}
-      />
-    );
-  }
 
   /* ── 맛집 목록 화면 ── */
   if (screen === 'restaurants' && selectedCeleb) {
@@ -109,7 +92,7 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
                 celebrities={celebrities}
                 liked={likedIds.has(r.id)}
                 onToggleLike={e => toggleLike(e, r.id)}
-                onClick={() => goToDetail(r)}
+                onClick={() => onSelectRestaurant(r)}
               />
             ))
           )}

@@ -21,6 +21,7 @@ const CELEBRITIES: Celeb[] = [
 export default function Page() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [mapRestaurant, setMapRestaurant] = useState<Restaurant | null>(null);
   const [catalogStatus, setCatalogStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [catalogError, setCatalogError] = useState<string>();
 
@@ -43,17 +44,22 @@ export default function Page() {
     return () => controller.abort();
   }, []);
 
+  const openRestaurantMap = (restaurant: Restaurant) => {
+    setMapRestaurant(restaurant);
+    setActiveTab('map');
+  };
+
   return (
     <div className="flex flex-col h-screen w-full bg-canvas max-w-md mx-auto border-x border-plum-100 overflow-hidden relative shadow-2xl">
       <div className="flex-1 overflow-y-auto no-scrollbar">
         {activeTab === 'home' && (
-          <HomeView celebrities={CELEBRITIES} restaurants={restaurants} catalogStatus={catalogStatus} catalogError={catalogError} />
+          <HomeView celebrities={CELEBRITIES} restaurants={restaurants} catalogStatus={catalogStatus} catalogError={catalogError} onSelectRestaurant={openRestaurantMap} />
         )}
         {activeTab === 'search' && (
-          <SearchView celebrities={CELEBRITIES} restaurants={restaurants} />
+          <SearchView celebrities={CELEBRITIES} restaurants={restaurants} onSelectRestaurant={openRestaurantMap} />
         )}
         {activeTab === 'map' && (
-          <MapView />
+          <MapView restaurant={mapRestaurant} />
         )}
         {activeTab === 'mypage' && (
           <MyPageView restaurants={restaurants} />

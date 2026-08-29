@@ -1,12 +1,12 @@
 "use client";
-import { useState, type MouseEvent } from 'react';
-import { Search, X, MapPin, Star, Building2, Trees, Route, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { Search, X, Star, Building2, Trees, Route, ChevronRight } from 'lucide-react';
 import type { Celeb, Restaurant } from '../lib/types';
-import { RestaurantDetail } from './HomeView';
 
 type Props = {
   celebrities: Celeb[];
   restaurants: Restaurant[];
+  onSelectRestaurant: (restaurant: Restaurant) => void;
 };
 
 type FilterTab = 'all' | 'restaurant' | 'hotel' | 'spot';
@@ -33,36 +33,9 @@ const FILTER_TABS: { id: FilterTab; label: string }[] = [
   { id: 'spot', label: '관광지' },
 ];
 
-export default function SearchView({ celebrities, restaurants }: Props) {
+export default function SearchView({ celebrities, restaurants, onSelectRestaurant }: Props) {
   const [query, setQuery] = useState('');
   const [filterTab, setFilterTab] = useState<FilterTab>('all');
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
-  const [likedIds, setLikedIds] = useState<Set<number>>(
-    new Set(restaurants.filter(r => r.liked).map(r => r.id))
-  );
-
-  const toggleLike = (e: MouseEvent, id: number) => {
-    e.stopPropagation();
-    setLikedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  if (selectedRestaurant) {
-    return (
-      <RestaurantDetail
-        restaurant={selectedRestaurant}
-        celebrities={celebrities}
-        liked={likedIds.has(selectedRestaurant.id)}
-        onToggleLike={e => toggleLike(e, selectedRestaurant.id)}
-        onBack={() => setSelectedRestaurant(null)}
-      />
-    );
-  }
-
   const hasQuery = query.trim().length > 0;
 
   const matchedRestaurants = hasQuery
@@ -196,7 +169,7 @@ export default function SearchView({ celebrities, restaurants }: Props) {
                     <button
                       key={r.id}
                       type="button"
-                      onClick={() => setSelectedRestaurant(r)}
+                      onClick={() => onSelectRestaurant(r)}
                       className="w-full bg-white rounded-2xl p-4 flex items-center gap-4 text-left shadow-sm border border-plum-100 cursor-pointer active:scale-[0.99] transition-transform"
                     >
                       <div
