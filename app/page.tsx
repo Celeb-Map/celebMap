@@ -59,7 +59,7 @@ export default function Page() {
           <SearchView celebrities={CELEBRITIES} restaurants={restaurants} onSelectRestaurant={openRestaurantMap} />
         )}
         {activeTab === 'map' && (
-          <MapView restaurant={mapRestaurant} />
+          <MapView key={mapRestaurant?.id ?? 'empty'} restaurant={mapRestaurant} />
         )}
         {activeTab === 'mypage' && (
           <MyPageView restaurants={restaurants} />

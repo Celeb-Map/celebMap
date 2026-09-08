@@ -1,19 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, BedDouble, ChevronDown, ExternalLink, LoaderCircle, MapPin, Phone, Store, X } from 'lucide-react';
+import { AlertCircle, BedDouble, ChevronDown, ExternalLink, LoaderCircle, MapPin, Phone, Sparkles, Store, X } from 'lucide-react';
+import CoursePlanner from './CoursePlanner';
 import { loadKakaoMap, type KakaoMap, type KakaoMapsApi, type KakaoOverlay } from '../lib/kakaoMapLoader';
 import type { Restaurant } from '../lib/types';
 
 type Coordinates = { latitude: number; longitude: number };
 type PlaceKind = 'attraction' | 'accommodation';
 type PlaceFilter = 'all' | PlaceKind;
-type TourismPlace = { id: string; kind: PlaceKind; contentTypeId: string; title: string; address: string; imageUrl: string | null; longitude: number; latitude: number; distanceMeters: number };
+type TourismPlace = { id: string; kind: PlaceKind; contentTypeId: string; title: string; address: string; imageUrl: string | null; longitude: number; latitude: number; distanceMeters: number | null };
 type NearbyResponse = { totalCount: number; places: TourismPlace[]; message?: string };
 type PlaceDetail = { title: string; address: string; imageUrl: string | null; telephone: string; overview: string; zipcode: string };
 type DetailResponse = { detail?: PlaceDetail; message?: string };
 
-const formatDistance = (meters: number) => meters < 1000 ? `${meters}m` : `${(meters / 1000).toFixed(1)}km`;
+const formatDistance = (meters: number | null) => meters === null ? '거리 정보 없음' : meters < 1000 ? `${meters}m` : `${(meters / 1000).toFixed(1)}km`;
 
 export default function MapView({ restaurant }: { restaurant: Restaurant | null }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -24,6 +25,8 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
   const appKey = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
 
   const [panelOpen, setPanelOpen] = useState(true);
+  const [courseOpen, setCourseOpen] = useState(false);
+  const [courseMap, setCourseMap] = useState<{ map: KakaoMap; maps: KakaoMapsApi } | null>(null);
   const coordinates = useMemo<Coordinates | null>(() => {
     if (restaurant?.latitude === null || restaurant?.longitude === null || restaurant?.latitude === undefined || restaurant?.longitude === undefined) return null;
     if (!Number.isFinite(restaurant.latitude) || !Number.isFinite(restaurant.longitude)) return null;
@@ -80,6 +83,7 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
       const isNewMap = !mapRef.current;
       const map = mapRef.current ?? new maps.Map(mapContainerRef.current, { center, level: 6 });
       mapRef.current = map;
+      setCourseMap({ map, maps });
       if (isNewMap) map.addControl(new maps.ZoomControl(), maps.ControlPosition.RIGHT);
       map.relayout();
       map.setCenter(center);
@@ -111,7 +115,7 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
     placeOverlaysRef.current = [];
     const map = mapRef.current;
     const maps = mapsApiRef.current;
-    if (!mapReady || !map || !maps) return;
+    if (!mapReady || !map || !maps || courseOpen) return;
 
     const visiblePlaces = placeFilter === 'all' ? places : places.filter(place => place.kind === placeFilter);
     placeOverlaysRef.current = visiblePlaces.map(place => {
@@ -145,7 +149,7 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
       placeOverlaysRef.current.forEach(overlay => overlay.setMap(null));
       placeOverlaysRef.current = [];
     };
-  }, [activePlaceId, mapReady, placeFilter, places]);
+  }, [activePlaceId, mapReady, placeFilter, places, courseOpen]);
 
   const attractionCount = places.filter(place => place.kind === 'attraction').length;
   const accommodationCount = places.filter(place => place.kind === 'accommodation').length;
@@ -226,10 +230,11 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
             <div className="min-w-0 flex-1"><p className="truncate text-xs font-bold text-plum-900">{restaurant.name} 주변</p><p className="mt-0.5 truncate text-[11px] text-plum-500">{message}</p></div>
           </div>
           <div className="mt-2 flex items-center gap-1.5 border-t border-plum-100 pt-2 text-[10px] text-plum-400"><MapPin size={11} /><span className="min-w-0 flex-1 truncate">기준 맛집 · {restaurant.location || '주소 정보 없음'}</span></div>
+          {!courseOpen && <button type="button" onClick={() => { closeDetail(); setCourseOpen(true); }} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-plum-700 py-3 text-xs font-extrabold text-neon-400"><Sparkles size={16} />이 맛집에서 추천 코스 만들기<span className="ml-1 text-[10px] font-medium text-white/70">4~5곳</span></button>}
         </div>
       </div>
 
-      <div className={`absolute bottom-0 left-0 right-0 z-20 overflow-hidden rounded-t-[28px] border border-b-0 border-plum-100 bg-white/95 shadow-[0_-12px_40px_rgba(60,26,71,0.14)] backdrop-blur-xl transition-[height] duration-300 ${panelOpen ? 'h-80' : 'h-[88px]'}`}>
+      {!courseOpen && <div className={`absolute bottom-0 left-0 right-0 z-20 overflow-hidden rounded-t-[28px] border border-b-0 border-plum-100 bg-white/95 shadow-[0_-12px_40px_rgba(60,26,71,0.14)] backdrop-blur-xl transition-[height] duration-300 ${panelOpen ? 'h-80' : 'h-[88px]'}`}>
         <button type="button" onClick={() => setPanelOpen(open => !open)} aria-expanded={panelOpen} aria-controls="nearby-places-panel" className="flex h-[88px] w-full items-center gap-3 px-5 text-left">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-plum-700 text-neon-400"><MapPin size={18} /></span>
           <span className="min-w-0 flex-1"><span className="flex items-center gap-2"><span className="text-sm font-extrabold text-plum-900">맛집 주변 여행 장소</span><span className="rounded-full bg-neon-400/20 px-2 py-0.5 text-[11px] font-extrabold text-plum-700">{places.length}곳</span></span><span className="mt-1 block truncate text-xs text-plum-400">{panelOpen ? `관광 ${attractionCount} · 숙박 ${accommodationCount}` : '관광지와 숙박 목록 보기'}</span></span>
@@ -260,6 +265,9 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
           </div>
         )}
       </div>
+
+      }
+      {courseOpen && <CoursePlanner key={restaurant.id} restaurant={restaurant} map={mapReady ? courseMap?.map ?? null : null} maps={mapReady ? courseMap?.maps ?? null : null} onClose={() => setCourseOpen(false)} />}
 
       {selectedPlace && (
         <div className="absolute inset-0 z-40 flex items-end" role="dialog" aria-modal="true" aria-labelledby="place-detail-title">
