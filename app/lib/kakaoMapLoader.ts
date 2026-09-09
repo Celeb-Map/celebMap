@@ -9,6 +9,7 @@ export type KakaoOverlay = {
 };
 
 export type KakaoMapsApi = {
+  Polyline: new (options: { map: KakaoMap; path: unknown[]; strokeWeight: number; strokeColor: string; strokeOpacity: number; strokeStyle: string }) => KakaoOverlay;
   load: (callback: () => void) => void;
   LatLng: new (latitude: number, longitude: number) => unknown;
   Map: new (container: HTMLElement, options: { center: unknown; level: number }) => KakaoMap;
@@ -18,6 +19,7 @@ export type KakaoMapsApi = {
     content: HTMLElement;
     xAnchor?: number;
     yAnchor: number;
+    zIndex?: number;
   }) => KakaoOverlay;
   ZoomControl: new () => unknown;
   ControlPosition: { RIGHT: unknown };

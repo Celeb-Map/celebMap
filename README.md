@@ -25,6 +25,13 @@
 - `app/components/Icons.tsx` — (로컬 아이콘 모음, 필요시 lucide로 교체 가능)
 
 ## 개발 환경 및 실행
+도보 코스 경로는 카카오 REST API의 `GET https://dapi.kakao.com/v2/routing/walk`를 사용합니다.
+`.env`에 `KAKAO_REST_API_KEY=발급받은_REST_API_키`를 추가하고 개발 서버를 재시작하세요.
+기존 `NEXT_PUBLIC_KAKAO_MAP_KEY`는 지도 SDK용 JavaScript 키이며 별도로 유지합니다.
+배포 환경에도 서버 전용 `KAKAO_REST_API_KEY`를 설정해야 합니다.
+코스 생성·편집 시 경유지를 포함해 조회하며, 지도에 도보 경로와 구간별 거리·예상 시간을 표시합니다.
+조회에 실패하면 경로선을 표시하지 않고 직선거리와 재조회 버튼을 표시합니다.
+
 Node.js와 npm이 설치되어 있어야 합니다.
 
 설치:

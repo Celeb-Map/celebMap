@@ -89,16 +89,16 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
       map.setCenter(center);
       locationOverlayRef.current?.setMap(null);
       const locationNode = document.createElement('div');
-      locationNode.className = 'flex flex-col items-center';
+      locationNode.className = 'relative flex flex-col items-center';
       const restaurantLabel = document.createElement('div');
-      restaurantLabel.className = 'mb-1 max-w-48 truncate rounded-xl bg-neon-400 px-3 py-1.5 text-xs font-black text-plum-900 shadow-lg';
+      restaurantLabel.className = 'pointer-events-none absolute bottom-full mb-1 max-w-32 truncate rounded-md bg-neon-400 px-2 py-1 text-[10px] font-bold text-plum-900 shadow-sm';
       restaurantLabel.textContent = restaurant?.name ?? '선택한 맛집';
       const restaurantMarker = document.createElement('div');
-      restaurantMarker.className = 'flex h-11 w-11 items-center justify-center rounded-2xl border-3 border-white bg-plum-700 text-[10px] font-black text-neon-400 shadow-xl';
+      restaurantMarker.className = 'flex h-8 w-8 items-center justify-center rounded-xl border-2 border-white bg-plum-700 text-[9px] font-bold text-neon-400 shadow-sm';
       restaurantMarker.textContent = '맛집';
       locationNode.append(restaurantLabel, restaurantMarker);
       locationNode.setAttribute('aria-label', `${restaurant?.name ?? '선택한 맛집'} 기준 위치`);
-      locationOverlayRef.current = new maps.CustomOverlay({ map, position: center, content: locationNode, xAnchor: 0.5, yAnchor: 1 });
+      locationOverlayRef.current = new maps.CustomOverlay({ map, position: center, content: locationNode, xAnchor: 0.5, yAnchor: 0.5, zIndex: 20 });
       setMapError(null);
       setMapReady(true);
     }).catch(error => {
@@ -121,17 +121,17 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
     placeOverlaysRef.current = visiblePlaces.map(place => {
       const position = new maps.LatLng(place.latitude, place.longitude);
       const wrapper = document.createElement('div');
-      wrapper.className = 'flex flex-col items-center';
+      wrapper.className = 'relative flex flex-col items-center';
       if (activePlaceId === place.id) {
         const label = document.createElement('div');
-        label.className = `mb-1 max-w-44 truncate rounded-xl px-3 py-1.5 text-xs font-bold text-white shadow-lg ${place.kind === 'accommodation' ? 'bg-orange-500' : 'bg-plum-900'}`;
+        label.className = `pointer-events-none absolute bottom-full mb-1 max-w-36 truncate rounded-md px-2 py-1 text-[10px] font-bold text-white shadow-sm ${place.kind === 'accommodation' ? 'bg-orange-500' : 'bg-plum-900'}`;
         label.textContent = place.title;
         wrapper.appendChild(label);
       }
       const marker = document.createElement('button');
       marker.type = 'button';
       const isAccommodation = place.kind === 'accommodation';
-      marker.className = `flex h-9 w-9 items-center justify-center border-2 border-white text-xs font-black shadow-lg transition-transform ${isAccommodation ? 'rounded-xl bg-orange-500 text-white' : 'rounded-full bg-plum-700 text-neon-400'} ${activePlaceId === place.id ? 'scale-125 ring-2 ring-white/80' : ''}`;
+      marker.className = `flex h-6 w-6 items-center justify-center border-2 border-white text-[10px] font-bold shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-700 ${isAccommodation ? 'rounded-lg bg-orange-500 text-white' : 'rounded-full bg-plum-700 text-neon-400'} ${activePlaceId === place.id ? 'ring-2 ring-plum-700/25' : ''}`;
       marker.setAttribute('aria-label', `${place.title} ${isAccommodation ? '숙박' : '관광지'}`);
       marker.textContent = isAccommodation ? 'H' : '●';
       marker.addEventListener('click', event => {
@@ -143,7 +143,7 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
         map.setCenter(position);
       });
       wrapper.appendChild(marker);
-      return new maps.CustomOverlay({ map, position, content: wrapper, xAnchor: 0.5, yAnchor: 1 });
+      return new maps.CustomOverlay({ map, position, content: wrapper, xAnchor: 0.5, yAnchor: 0.5, zIndex: activePlaceId === place.id ? 30 : 5 });
     });
     return () => {
       placeOverlaysRef.current.forEach(overlay => overlay.setMap(null));
