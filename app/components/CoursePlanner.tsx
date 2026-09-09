@@ -10,6 +10,19 @@ import type { WalkingRoute } from '../lib/walkingRoute';
 type CandidateResponse = { origin: Omit<CoursePlace, 'candidateId'>; places: CoursePlace[]; radiusMeters: number; message?: string };
 const distanceLabel = (meters: number) => meters < 1000 ? `${meters}m` : `${(meters / 1000).toFixed(1)}km`;
 
+// Join touching instruction steps without drawing shortcuts across missing geometry.
+function connectedPaths(paths: [number, number][][]) {
+  const result: [number, number][][] = [];
+  for (const path of paths) {
+    if (!path.length) continue;
+    const previous = result[result.length - 1];
+    const end = previous?.[previous.length - 1];
+    if (end && end[0] === path[0][0] && end[1] === path[0][1]) previous.push(...path.slice(1));
+    else result.push([...path]);
+  }
+  return result.filter(path => path.length >= 2);
+}
+
 export default function CoursePlanner({ restaurant, map, maps, onClose }: {
   restaurant: Restaurant; map: KakaoMap | null; maps: KakaoMapsApi | null; onClose: () => void;
 }) {
@@ -30,6 +43,7 @@ export default function CoursePlanner({ restaurant, map, maps, onClose }: {
   const walkKey = JSON.stringify(stops.map(({ latitude, longitude }) => ({ latitude, longitude })));
   const currentWalk = walkResult?.key === walkKey ? walkResult : null;
   const walk = currentWalk?.route;
+  const activeLeg = stops.findIndex(stop => stop.candidateId === activeId) - 1;
 
   useEffect(() => {
     if (JSON.parse(walkKey).length < 2) return;
@@ -52,12 +66,17 @@ export default function CoursePlanner({ restaurant, map, maps, onClose }: {
 
   useEffect(() => {
     if (!map || !maps || !walk) return;
-    const lines = walk.legs.flatMap(leg => leg.paths.filter(path => path.length >= 2).map(path => new maps.Polyline({
-      map, path: path.map(([longitude, latitude]) => new maps.LatLng(latitude, longitude)),
-      strokeWeight: 5, strokeColor: '#7c3aed', strokeOpacity: 0.85, strokeStyle: 'solid',
-    })));
+    const lines = walk.legs.flatMap((leg, index) => connectedPaths(leg.paths).flatMap(points => {
+      const path = points.map(([longitude, latitude]) => new maps.LatLng(latitude, longitude));
+      const selected = activeLeg === index;
+      const muted = activeLeg >= 0 && !selected;
+      return [
+        new maps.Polyline({ map, path, strokeWeight: selected ? 9 : 7, strokeColor: '#ffffff', strokeOpacity: 0.95, strokeStyle: 'solid', zIndex: selected ? 3 : 1 }),
+        new maps.Polyline({ map, path, strokeWeight: selected ? 5 : 3.5, strokeColor: muted ? '#b2d8d3' : '#0d9488', strokeOpacity: 1, strokeStyle: 'solid', zIndex: selected ? 4 : 2, endArrow: selected }),
+      ];
+    }));
     return () => lines.forEach(line => line.setMap(null));
-  }, [map, maps, walk]);
+  }, [map, maps, walk, activeLeg]);
 
   useEffect(() => {
     titleRef.current?.focus();
@@ -171,6 +190,16 @@ export default function CoursePlanner({ restaurant, map, maps, onClose }: {
         {stops.length > 0 && <>
           <div className="mb-3 mt-4 flex items-center justify-between"><p className="text-xs font-extrabold text-plum-700">방문 순서 초안</p><span className="text-[10px] text-plum-400">출발지 반경 {radius / 1000}km</span></div>
           <p className="mb-3 text-[11px] leading-5 text-plum-500">영업시간은 방문 전 확인해 주세요. 도보 시간은 이동만 포함한 예상 시간이에요.</p>
+          {walk && <div className="mb-4 rounded-2xl border border-plum-100 bg-plum-50/60 p-3">
+            <div className="mb-2 flex items-center justify-between"><span className="text-[11px] font-bold text-plum-700">구간을 눌러 길을 확인하세요</span><button type="button" onClick={() => setActiveId(null)} aria-pressed={activeLeg < 0} className="rounded-md px-2 py-1 text-[10px] font-bold text-plum-600 underline">전체 경로</button></div>
+            <div className="flex gap-2 overflow-x-auto pb-1">{walk.legs.map((leg, index) => <button key={index} type="button" aria-pressed={activeLeg === index} aria-label={`${index + 1}번에서 ${index + 2}번까지 도보 구간 보기`} onClick={() => {
+              setActiveId(stops[index + 1].candidateId);
+              const paths = connectedPaths(leg.paths);
+              const path = paths.reduce((longest, current) => current.length > longest.length ? current : longest, [] as [number, number][]);
+              const point = path[Math.floor(path.length / 2)];
+              if (point && map && maps) map.setCenter(new maps.LatLng(point[1], point[0]));
+            }} className={`shrink-0 rounded-xl border px-3 py-2 text-left ${activeLeg === index ? 'border-teal-700 bg-teal-700 text-white' : 'border-teal-100 bg-white text-teal-800'}`}><span className="block text-xs font-bold">{index + 1} <span className="mx-1 opacity-50">→</span> {index + 2}</span><span className="mt-1 block text-[10px] opacity-75">약 {Math.ceil(leg.duration / 60)}분 · {distanceLabel(leg.distance)}</span></button>)}</div>
+          </div>}
           <div role="status" className="mb-3 text-xs text-plum-600">{stops.length > 1 && !walk && (currentWalk?.error ? <>{currentWalk.error} 현재 거리는 직선거리예요. <button type="button" className="ml-2 font-bold underline" onClick={() => { setWalkResult(null); setWalkAttempt(value => value + 1); }}>다시 조회</button></> : '도보 경로를 조회하고 있어요…')}</div><ol className="space-y-2">{stops.map((place, index) => <li key={place.candidateId}>
             {index > 0 && <p className="mb-2 ml-4 border-l-2 border-dashed border-plum-200 py-1 pl-5 text-[10px] text-plum-400">{walk ? `도보 ${distanceLabel(walk.legs[index - 1].distance)} · 약 ${Math.ceil(walk.legs[index - 1].duration / 60)}분` : `직선 ${distanceLabel(straightDistance(stops[index - 1], place))}`}</p>}
             <div className={`rounded-2xl border p-3 ${activeId === place.candidateId ? 'border-plum-700 bg-neon-50' : 'border-plum-100 bg-white'}`}>
