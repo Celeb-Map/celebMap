@@ -19,8 +19,8 @@ const POPULAR_SEARCHES = ['블랙핑크', 'BTS', '세븐틴', '스트레이키�
 const FILTER_TABS: { id: FilterTab; label: string }[] = [
   { id: 'all', label: '전체' },
   { id: 'restaurant', label: '맛집' },
-  { id: 'hotel', label: '숙박' },
   { id: 'spot', label: '관광지' },
+  { id: 'hotel', label: '숙박' },
 ];
 
 export default function SearchView({ celebrities, restaurants, onSelectRestaurant }: Props) {
