@@ -181,7 +181,7 @@ function RestaurantCard({
       <button
         type="button"
         onClick={onClick}
-        className="block w-full rounded-2xl p-4 text-left transition-colors hover:bg-plum-50/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-500"
+        className="block w-full cursor-pointer rounded-2xl p-4 text-left transition-colors hover:bg-plum-50/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-500"
       >
         <div className="flex items-start gap-3 pr-10">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-plum-100 bg-plum-50 text-plum-700">
@@ -218,7 +218,7 @@ function RestaurantCard({
         onClick={onToggleLike}
         aria-label={r.name + (locale === 'ko' ? ' 찜' : ' — Save')}
         aria-pressed={liked}
-        className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full text-plum-500 transition-colors hover:bg-plum-50 focus-visible:outline-2 focus-visible:outline-plum-500"
+        className="absolute right-2 top-2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-plum-500 transition-colors hover:bg-plum-50 focus-visible:outline-2 focus-visible:outline-plum-500"
       >
         <Heart size={19} className={liked ? 'fill-neon-400 text-plum-700' : 'text-plum-300'} aria-hidden="true" />
       </button>
