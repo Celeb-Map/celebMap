@@ -202,7 +202,7 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
 
   if (!restaurant) {
     return (
-      <div className="flex h-[calc(100dvh-116px)] items-center justify-center bg-plum-50 px-8 text-center">
+      <div className="flex h-full items-center justify-center bg-plum-50 px-8 text-center">
         <div>
           <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-plum-700 text-neon-400 shadow-lg"><Store size={27} /></span>
           <h2 className="mt-5 text-lg font-black text-plum-900">{t("먼저 맛집을 선택해 주세요")}</h2>
@@ -215,14 +215,14 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
 
   if (!coordinates) {
     return (
-      <div className="flex h-[calc(100dvh-116px)] items-center justify-center bg-plum-50 px-8 text-center">
+      <div className="flex h-full items-center justify-center bg-plum-50 px-8 text-center">
         <div><AlertCircle className="mx-auto text-plum-400" size={32} /><h2 className="mt-4 text-base font-black text-plum-900">{t("맛집 위치 정보가 없어요")}</h2><p className="mt-2 text-sm text-plum-500">{t("다른 맛집을 선택해 주세요.")}</p></div>
       </div>
     );
   }
 
   return (
-    <div className="relative flex h-[calc(100dvh-116px)] flex-col">
+    <div className="relative flex h-full min-h-0 flex-col">
       <div className="relative flex-1 overflow-hidden bg-plum-50">
         <div ref={mapContainerRef} className="absolute inset-0" aria-label={t('{name} 주변 관광지 지도', { name: restaurant.name })} />
         {mapError && (

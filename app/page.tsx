@@ -80,7 +80,7 @@ export default function Page() {
           <MyPageView restaurants={displayedRestaurants} />
         )}
       </div>
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} inFlow={activeTab === 'map'} />
     </div>
   );
 }

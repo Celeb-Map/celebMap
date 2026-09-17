@@ -6,6 +6,7 @@ import type { Tab } from '../page';
 type Props = {
   activeTab: Tab;
   setActiveTab: (t: Tab) => void;
+  inFlow?: boolean;
 };
 
 const tabs = [
@@ -15,10 +16,10 @@ const tabs = [
   { id: 'mypage' as Tab, icon: User, label: '마이' },
 ];
 
-export default function Navbar({ activeTab, setActiveTab }: Props) {
+export default function Navbar({ activeTab, setActiveTab, inFlow = false }: Props) {
   const { t } = useLanguage();
   return (
-    <nav className="absolute bottom-0 w-full bg-white border-t border-plum-100 px-2 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-around items-center z-50">
+    <nav className={`${inFlow ? 'relative shrink-0' : 'absolute bottom-0'} w-full bg-white border-t border-plum-100 px-2 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-around items-center z-50`}>
       {tabs.map(tab => {
         const Icon = tab.icon;
         const active = activeTab === tab.id;
