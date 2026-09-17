@@ -1,7 +1,8 @@
 "use client";
 import { useLanguage } from './LanguageProvider';
 import { useState } from 'react';
-import { Search, X, Star, Building2, Trees, Route, ChevronRight } from 'lucide-react';
+import SearchNearbyPlaces from './SearchNearbyPlaces';
+import { Search, X, Star, Route } from 'lucide-react';
 import type { Celeb, Restaurant } from '../lib/types';
 
 type Props = {
@@ -14,18 +15,6 @@ type FilterTab = 'all' | 'restaurant' | 'hotel' | 'spot';
 
 const RECENT_SEARCHES = ['BTS 강남 맛집', '블랙핑크 추천', '홍대 카페'];
 const POPULAR_SEARCHES = ['블랙핑크', 'BTS', '세븐틴', '스트레이키즈', 'GD'];
-
-const MOCK_HOTELS = [
-  { id: 1, name: '그랜드 인터컨티넨탈', distance: '0.8km', stars: 5, price: '₩250,000~' },
-  { id: 2, name: '파크 하얏트 서울', distance: '1.2km', stars: 5, price: '₩320,000~' },
-  { id: 3, name: '롯데시티호텔', distance: '1.5km', stars: 4, price: '₩120,000~' },
-];
-
-const MOCK_SPOTS = [
-  { id: 1, name: '코엑스 아쿠아리움', distance: '0.5km', type: '관광' },
-  { id: 2, name: '봉은사', distance: '0.9km', type: '문화' },
-  { id: 3, name: '스타필드 코엑스몰', distance: '0.3km', type: '쇼핑' },
-];
 
 const FILTER_TABS: { id: FilterTab; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -205,68 +194,8 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
             </section>
           )}
 
-          {/* Hotels */}
-          {(filterTab === 'all' || filterTab === 'hotel') && (
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[13px] font-bold text-plum-800">{t("근처 숙박")}</p>
-                <button className="text-xs text-plum-700 font-semibold flex items-center gap-0.5">{t("더보기")}<ChevronRight size={13} />
-                </button>
-              </div>
-              <div className="space-y-2.5">
-                {MOCK_HOTELS.map(h => (
-                  <div
-                    key={h.id}
-                    className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-plum-100"
-                  >
-                    <div className="w-14 h-14 rounded-xl bg-plum-700 flex items-center justify-center flex-shrink-0">
-                      <Building2 size={22} className="text-neon-400" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-plum-900 text-sm">{t(h.name)}</p>
-                      <div className="flex items-center gap-0.5 mt-0.5">
-                        {Array.from({ length: h.stars }).map((_, i) => (
-                          <Star key={i} size={9} className="fill-neon-400 text-plum-700" />
-                        ))}
-                      </div>
-                      <p className="text-xs text-plum-400 mt-0.5">
-                        {h.distance} · {h.price}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Tourist spots */}
-          {(filterTab === 'all' || filterTab === 'spot') && (
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[13px] font-bold text-plum-800">{t("근처 관광지")}</p>
-                <button className="text-xs text-plum-700 font-semibold flex items-center gap-0.5">{t("더보기")}<ChevronRight size={13} />
-                </button>
-              </div>
-              <div className="space-y-2.5">
-                {MOCK_SPOTS.map(s => (
-                  <div
-                    key={s.id}
-                    className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-plum-100"
-                  >
-                    <div className="w-14 h-14 rounded-xl bg-neon-400 flex items-center justify-center flex-shrink-0">
-                      <Trees size={22} className="text-plum-700" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-plum-900 text-sm">{t(s.name)}</p>
-                      <p className="text-xs text-plum-400 mt-0.5">{s.distance}</p>
-                      <span className="px-2 py-0.5 bg-plum-50 text-plum-700 text-[10px] font-semibold rounded-full mt-1 inline-block">
-                        {t(s.type)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+          {filterTab !== 'restaurant' && (
+            <SearchNearbyPlaces restaurants={matchedRestaurants} filter={filterTab} onSelectRestaurant={onSelectRestaurant} />
           )}
 
           {/* Travel course recommendation banner */}

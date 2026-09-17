@@ -97,6 +97,11 @@ const english: Record<string, string> = {
   '{name} 위로 이동': 'Move {name} up', '{name} 아래로 이동': 'Move {name} down', '{name} 코스에서 삭제': 'Remove {name}', '{name} 코스 끝에 추가': 'Add {name} to the itinerary',
   '{name} 위치 지도': 'Map of {name}', '맛집 ID: {id}': 'Restaurant ID: {id}',
   '영문 정보가 없는 맛집명과 주소는 원문으로 표시돼요.': 'Restaurant names and addresses without English data are shown in Korean.',
+  '맛집을 검색하면 주변 관광지와 숙박을 보여드려요.': 'Search for a restaurant to see nearby attractions and stays.',
+  '주변 검색 기준 맛집': 'Restaurant for nearby places',
+  '지도와 동일하게 맛집 반경 3km 내 장소를 보여드려요.': 'Places within 3 km of this restaurant, just like the map.',
+  '이 맛집 주변 지도 보기': 'View places around this restaurant on the map',
+  '다시 시도': 'Try again',
 };
 
 export function translate(locale: Locale, text: string, values?: Record<string, string | number>) {
