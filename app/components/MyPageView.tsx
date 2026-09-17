@@ -1,7 +1,7 @@
 "use client";
-import { useLanguage } from './LanguageProvider';
+import { LanguageToggle, useLanguage } from './LanguageProvider';
 import { useState } from 'react';
-import { Settings, Heart, Route, MapPin, Star, LogIn } from 'lucide-react';
+import { Heart, Route, MapPin, Star, LogIn } from 'lucide-react';
 import type { Restaurant } from '../lib/types';
 
 type Props = {
@@ -58,9 +58,7 @@ export default function MyPageView({ restaurants }: Props) {
       {/* Header */}
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
         <h2 className="text-xl font-extrabold text-plum-900">{t("마이페이지")}</h2>
-        <button className="w-9 h-9 bg-plum-700 rounded-full flex items-center justify-center shadow-sm">
-          <Settings size={17} className="text-neon-400" />
-        </button>
+        <LanguageToggle />
       </div>
 
       {/* Profile card */}

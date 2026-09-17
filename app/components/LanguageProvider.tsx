@@ -35,12 +35,12 @@ export function useLanguage() {
 export function LanguageToggle() {
   const { locale, setLocale } = useLanguage();
   return (
-    <div role="group" aria-label="한국어 / English" className="inline-flex shrink-0 gap-0.5 rounded-full border border-plum-100 bg-white p-1">
+    <div role="group" aria-label="한국어 / English" className="inline-flex shrink-0 items-center rounded-full bg-plum-50 p-0.5 ring-1 ring-inset ring-plum-100">
       {(['ko', 'en'] as const).map(language => (
-        <button key={language} type="button" lang={language} aria-pressed={locale === language}
+        <button key={language} type="button" lang={language} aria-label={language === 'ko' ? '한국어' : 'English'} title={language === 'ko' ? '한국어' : 'English'} aria-pressed={locale === language}
           onClick={() => setLocale(language)}
-          className={`rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-700 ${locale === language ? 'bg-plum-700 text-neon-400' : 'text-plum-500 hover:bg-plum-50'}`}>
-          {language === 'ko' ? '한국어' : 'English'}
+          className={`flex h-10 w-11 items-center justify-center rounded-full text-[11px] font-bold tracking-wide transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-700 ${locale === language ? 'bg-white text-plum-900 shadow-sm' : 'text-plum-400 hover:text-plum-700'}`}>
+          {language === 'ko' ? 'KO' : 'EN'}
         </button>
       ))}
     </div>

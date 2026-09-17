@@ -1,10 +1,10 @@
 "use client";
-import { useLanguage } from './LanguageProvider';
+import { LanguageToggle, useLanguage } from './LanguageProvider';
 import { useState, type MouseEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Bell, ChevronLeft, ChevronRight, Heart,
+  ChevronLeft, ChevronRight, Heart,
   MapPin, Star, Clock, Coffee, Navigation, Utensils, CakeSlice, Wine,
 } from 'lucide-react';
 import type { Celeb, Restaurant } from '../lib/types';
@@ -125,10 +125,7 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
           </h1>
           <p className="text-xs text-plum-400 mt-0.5">{t("셀럽 추천 맛집 여행")}</p>
         </div>
-        <button className="relative w-9 h-9 bg-plum-700 rounded-full flex items-center justify-center shadow-sm">
-          <Bell size={17} className="text-neon-400" />
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-neon-400 rounded-full border border-white" />
-        </button>
+        <LanguageToggle />
       </div>
 
       <p className="px-5 text-[13px] font-bold text-plum-800 mb-4">{t("어떤 셀럽의 맛집으로 떠나볼까요?")}</p>

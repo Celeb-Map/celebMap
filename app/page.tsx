@@ -9,7 +9,7 @@ import type { Celeb, Restaurant } from './lib/types';
 import seventeenLogo from '../public/imgs/SEVENTEEN_logo.png';
 import cortisLogo from '../public/imgs/CORTIS_logo.png';
 import btsLogo from '../public/imgs/BTS_logo.png';
-import { LanguageToggle, useLanguage } from './components/LanguageProvider';
+import { useLanguage } from './components/LanguageProvider';
 
 export type Tab = 'home' | 'search' | 'map' | 'mypage';
 
@@ -66,10 +66,6 @@ export default function Page() {
 
   return (
     <div className="flex flex-col h-dvh w-full bg-canvas max-w-md mx-auto border-x border-plum-100 overflow-hidden relative shadow-2xl">
-      <div className="flex shrink-0 items-center justify-between border-b border-plum-100 bg-canvas px-5 py-2">
-        <span className="text-[11px] font-semibold text-plum-500">{t('언어')}</span>
-        <LanguageToggle />
-      </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain no-scrollbar">
         {activeTab === 'home' && (
           <HomeView celebrities={CELEBRITIES} restaurants={displayedRestaurants} catalogStatus={catalogStatus} catalogError={locale === 'en' && catalogError ? t('맛집 정보를 불러오지 못했습니다.') : catalogError} onSelectRestaurant={openRestaurantMap} />
