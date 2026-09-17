@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { cookies } from 'next/headers';
@@ -18,7 +18,16 @@ const geistMono = Geist_Mono({
 
 const kakaoMapKey = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
+  appleWebApp: { capable: true },
+  other: { 'apple-mobile-web-app-capable': 'yes' },
   metadataBase: new URL("https://celeb-map.vercel.app"),
   icons: {
     icon: { url: "/logo_v1.png", type: "image/png" },

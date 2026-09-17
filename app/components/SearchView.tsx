@@ -49,7 +49,7 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder={t("셀럽명, 맛집 이름으로 검색")}
-            className="w-full pl-11 pr-10 py-3 bg-white border border-plum-200 rounded-2xl text-sm text-plum-900 placeholder:text-plum-300 outline-none focus:border-plum-700 focus:ring-2 focus:ring-neon-300 shadow-sm transition-all"
+            className="w-full pl-11 pr-10 py-3 bg-white border border-plum-200 rounded-2xl text-base sm:text-sm text-plum-900 placeholder:text-plum-300 outline-none focus:border-plum-700 focus:ring-2 focus:ring-neon-300 shadow-sm transition-all"
           />
           {hasQuery && (
             <button

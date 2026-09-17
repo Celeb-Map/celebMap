@@ -33,7 +33,7 @@ export default function SearchNearbyPlaces({ restaurants, filter, onSelectRestau
     <section className="space-y-3">
       <div className="rounded-2xl bg-plum-50 p-4">
         <label htmlFor="nearby-search-restaurant" className="mb-2 block text-xs font-bold text-plum-700">{t('주변 검색 기준 맛집')}</label>
-        <select id="nearby-search-restaurant" value={restaurant.id} onChange={event => setSelectedId(Number(event.target.value))} className="w-full rounded-xl border border-plum-200 bg-white p-3 text-sm text-plum-900">
+        <select id="nearby-search-restaurant" value={restaurant.id} onChange={event => setSelectedId(Number(event.target.value))} className="w-full rounded-xl border border-plum-200 bg-white p-3 text-base text-plum-900 sm:text-sm">
           {restaurants.map(item => <option key={item.id} value={item.id}>{item.name} — {item.location}</option>)}
         </select>
         <p className="mt-2 text-[11px] text-plum-500">{t('지도와 동일하게 맛집 반경 3km 내 장소를 보여드려요.')}</p>
