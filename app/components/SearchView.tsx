@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from './LanguageProvider';
 import { useState } from 'react';
 import { Search, X, Star, Building2, Trees, Route, ChevronRight } from 'lucide-react';
 import type { Celeb, Restaurant } from '../lib/types';
@@ -34,15 +35,16 @@ const FILTER_TABS: { id: FilterTab; label: string }[] = [
 ];
 
 export default function SearchView({ celebrities, restaurants, onSelectRestaurant }: Props) {
+  const { t } = useLanguage();
   const [query, setQuery] = useState('');
   const [filterTab, setFilterTab] = useState<FilterTab>('all');
   const hasQuery = query.trim().length > 0;
 
   const matchedRestaurants = hasQuery
     ? restaurants.filter(r =>
-        r.name.includes(query) ||
+        r.name.toLowerCase().includes(query.toLowerCase()) ||
         r.recom.some(g => g.toLowerCase().includes(query.toLowerCase())) ||
-        celebrities.some(c => c.name.includes(query) && r.recom.includes(c.group))
+        celebrities.some(c => (c.name.toLowerCase().includes(query.toLowerCase()) || c.englishName.toLowerCase().includes(query.toLowerCase())) && r.recom.includes(c.group))
       )
     : [];
 
@@ -50,14 +52,14 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
     <div className="pb-28">
       {/* Sticky header */}
       <div className="px-5 pt-6 pb-3 bg-canvas sticky top-0 z-10">
-        <h2 className="text-xl font-extrabold text-plum-900 mb-3">검색</h2>
+        <h2 className="text-xl font-extrabold text-plum-900 mb-3">{t("검색")}</h2>
         <div className="relative">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-plum-400" />
           <input
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="셀럽명, 맛집 이름으로 검색"
+            placeholder={t("셀럽명, 맛집 이름으로 검색")}
             className="w-full pl-11 pr-10 py-3 bg-white border border-plum-200 rounded-2xl text-sm text-plum-900 placeholder:text-plum-300 outline-none focus:border-plum-700 focus:ring-2 focus:ring-neon-300 shadow-sm transition-all"
           />
           {hasQuery && (
@@ -82,7 +84,7 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
                     : 'bg-white text-plum-500 border border-plum-200'
                 }`}
               >
-                {tab.label}
+                {t(tab.label)}
               </button>
             ))}
           </div>
@@ -94,15 +96,15 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
         <div className="px-5 space-y-6 mt-1">
           {/* Celeb quick filter */}
           <div>
-            <p className="text-[13px] font-bold text-plum-800 mb-3">셀럽으로 검색</p>
+            <p className="text-[13px] font-bold text-plum-800 mb-3">{t("셀럽으로 검색")}</p>
             <div className="flex gap-2 flex-wrap">
               {celebrities.map(c => (
                 <button
                   key={c.id}
-                  onClick={() => setQuery(c.name)}
+                  onClick={() => setQuery(t(c.name))}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r ${c.gradient} text-white shadow-sm`}
                 >
-                  {c.emoji} {c.name}
+                  {c.emoji} {t(c.name)}
                 </button>
               ))}
             </div>
@@ -110,11 +112,11 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
 
           {/* Recent searches */}
           <div>
-            <p className="text-[13px] font-bold text-plum-800 mb-2">최근 검색</p>
+            <p className="text-[13px] font-bold text-plum-800 mb-2">{t("최근 검색")}</p>
             <div className="bg-white rounded-2xl border border-plum-100 shadow-sm overflow-hidden">
               {RECENT_SEARCHES.map((s, i) => (
                 <button
-                  key={s}
+                  key={t(s)}
                   onClick={() => setQuery(s)}
                   className={`w-full flex items-center justify-between px-4 py-3 ${
                     i < RECENT_SEARCHES.length - 1 ? 'border-b border-plum-50' : ''
@@ -122,7 +124,7 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
                 >
                   <div className="flex items-center gap-3">
                     <Search size={13} className="text-plum-300" />
-                    <span className="text-sm text-plum-800">{s}</span>
+                    <span className="text-sm text-plum-800">{t(s)}</span>
                   </div>
                   <X size={13} className="text-plum-300" />
                 </button>
@@ -132,18 +134,18 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
 
           {/* Popular */}
           <div>
-            <p className="text-[13px] font-bold text-plum-800 mb-3">인기 검색어</p>
+            <p className="text-[13px] font-bold text-plum-800 mb-3">{t("인기 검색어")}</p>
             <div className="flex gap-2 flex-wrap">
               {POPULAR_SEARCHES.map((s, i) => (
                 <button
-                  key={s}
+                  key={t(s)}
                   onClick={() => setQuery(s)}
                   className="px-3 py-1.5 bg-white rounded-full text-xs font-medium text-plum-700 border border-plum-200 shadow-sm"
                 >
                   <span className="bg-neon-400 text-plum-900 font-extrabold rounded-full px-1.5 py-0.5 mr-1.5">
                     {i + 1}
                   </span>
-                  {s}
+                  {t(s)}
                 </button>
               ))}
             </div>
@@ -155,13 +157,11 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
           {/* Restaurants */}
           {(filterTab === 'all' || filterTab === 'restaurant') && (
             <section>
-              <p className="text-[13px] font-bold text-plum-800 mb-3">
-                맛집{' '}
-                <span className="text-plum-700">{matchedRestaurants.length}</span>개
-              </p>
+              <p className="text-[13px] font-bold text-plum-800 mb-3">{t("맛집")}{' '}
+                <span className="text-plum-700">{matchedRestaurants.length}</span>{t("개")}</p>
               {matchedRestaurants.length === 0 ? (
                 <div className="text-center py-8 bg-white rounded-2xl border border-plum-100">
-                  <p className="text-plum-400 text-sm">검색 결과가 없어요</p>
+                  <p className="text-plum-400 text-sm">{t("검색 결과가 없어요")}</p>
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -178,17 +178,17 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-plum-900 text-sm">{r.name}</p>
                         <p className="text-xs text-plum-400 mt-0.5">
-                          {r.category} · {r.distance}
+                          {t(r.category)} · {t(r.distance)}
                         </p>
                         <div className="flex items-center gap-1 mt-1">
                           {r.recom.map(g => {
                             const celeb = celebrities.find(c => c.group === g);
                             return (
                               <span
-                                key={g}
+                                key={t(g)}
                                 className={`px-2 py-0.5 bg-gradient-to-r ${celeb?.gradient ?? 'from-plum-700 to-plum-500'} text-white text-[9px] font-bold rounded-full`}
                               >
-                                {g}
+                                {t(g)}
                               </span>
                             );
                           })}
@@ -209,9 +209,8 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
           {(filterTab === 'all' || filterTab === 'hotel') && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[13px] font-bold text-plum-800">근처 숙박</p>
-                <button className="text-xs text-plum-700 font-semibold flex items-center gap-0.5">
-                  더보기 <ChevronRight size={13} />
+                <p className="text-[13px] font-bold text-plum-800">{t("근처 숙박")}</p>
+                <button className="text-xs text-plum-700 font-semibold flex items-center gap-0.5">{t("더보기")}<ChevronRight size={13} />
                 </button>
               </div>
               <div className="space-y-2.5">
@@ -224,7 +223,7 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
                       <Building2 size={22} className="text-neon-400" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-plum-900 text-sm">{h.name}</p>
+                      <p className="font-bold text-plum-900 text-sm">{t(h.name)}</p>
                       <div className="flex items-center gap-0.5 mt-0.5">
                         {Array.from({ length: h.stars }).map((_, i) => (
                           <Star key={i} size={9} className="fill-neon-400 text-plum-700" />
@@ -244,9 +243,8 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
           {(filterTab === 'all' || filterTab === 'spot') && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[13px] font-bold text-plum-800">근처 관광지</p>
-                <button className="text-xs text-plum-700 font-semibold flex items-center gap-0.5">
-                  더보기 <ChevronRight size={13} />
+                <p className="text-[13px] font-bold text-plum-800">{t("근처 관광지")}</p>
+                <button className="text-xs text-plum-700 font-semibold flex items-center gap-0.5">{t("더보기")}<ChevronRight size={13} />
                 </button>
               </div>
               <div className="space-y-2.5">
@@ -259,10 +257,10 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
                       <Trees size={22} className="text-plum-700" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-plum-900 text-sm">{s.name}</p>
+                      <p className="font-bold text-plum-900 text-sm">{t(s.name)}</p>
                       <p className="text-xs text-plum-400 mt-0.5">{s.distance}</p>
                       <span className="px-2 py-0.5 bg-plum-50 text-plum-700 text-[10px] font-semibold rounded-full mt-1 inline-block">
-                        {s.type}
+                        {t(s.type)}
                       </span>
                     </div>
                   </div>
@@ -276,14 +274,11 @@ export default function SearchView({ celebrities, restaurants, onSelectRestauran
             <div className="bg-plum-700 rounded-2xl p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-bold text-neon-400">✨ 여행 코스 추천</p>
-                  <p className="text-xs text-plum-200 mt-0.5">
-                    검색 결과 기반 코스를 만들어드려요
-                  </p>
+                  <p className="text-sm font-bold text-neon-400">{t("✨ 여행 코스 추천")}</p>
+                  <p className="text-xs text-plum-200 mt-0.5">{t("검색 결과 기반 코스를 만들어드려요")}</p>
                 </div>
                 <button className="px-3 py-1.5 bg-neon-400 text-plum-900 text-xs font-bold rounded-xl flex items-center gap-1 shadow-md">
-                  <Route size={13} /> 코스 보기
-                </button>
+                  <Route size={13} />{t("코스 보기")}</button>
               </div>
             </div>
           )}

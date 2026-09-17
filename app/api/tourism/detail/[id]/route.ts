@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-const TOUR_API_ENDPOINT = 'https://apis.data.go.kr/B551011/KorService2/detailCommon2';
+import { parseLocale, tourismConfig } from '../../../../lib/locale';
 
 function textOnly(value: unknown) {
   if (typeof value !== 'string') return '';
@@ -21,6 +21,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  const locale = parseLocale(request.nextUrl.searchParams.get('lang'));
+  const endpoint = `https://apis.data.go.kr/B551011/${tourismConfig(locale).service}/detailCommon2`;
   const contentId = id.trim();
   const contentTypeId = request.nextUrl.searchParams.get('contentTypeId')?.trim();
   if (!/^\d+$/.test(contentId)) {
@@ -54,7 +56,7 @@ export async function GET(
   if (contentTypeId) query.set('contentTypeId', contentTypeId);
 
   try {
-    const response = await fetch(`${TOUR_API_ENDPOINT}?${query}`, { cache: 'no-store' });
+    const response = await fetch(`${endpoint}?${query}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!response.ok) throw new Error(`TourAPI 상세 요청에 실패했습니다. (${response.status})`);
     const data = await response.json();
     const header = data?.response?.header;
@@ -74,7 +76,7 @@ export async function GET(
         zipcode: textOnly(item.zipcode),
       },
     }, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error) {
-    return Response.json({ message: error instanceof Error ? error.message : '상세 정보를 불러오지 못했습니다.' }, { status: 502 });
+  } catch {
+    return Response.json({ message: locale === 'en' ? 'Unable to load place details.' : '상세 정보를 불러오지 못했습니다.' }, { status: 502 });
   }
 }

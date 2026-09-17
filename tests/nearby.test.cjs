@@ -40,6 +40,68 @@ function setupEnv() {
 }
 const request = query => ({ nextUrl: new URL('http://localhost/api?' + query) });
 const origin = { id: 1, longitude: 127, latitude: 37.5, kind: 'restaurant', source: 'supabase' };
+
+test('언어별 관광지·숙박 코드를 사용하고 상세 조회도 같은 서비스로 연결한다', async () => {
+  setupEnv();
+  const { GET: nearby } = loadTs('app/api/tourism/nearby/route.ts');
+  const { GET: detail } = loadTs('app/api/tourism/detail/[id]/route.ts');
+  for (const [language, service, codes] of [['en', 'EngService2', ['76', '80']], ['ko', 'KorService2', ['12', '32']]]) {
+    const calls = [];
+    global.fetch = async input => {
+      const url = new URL(String(input));
+      assert.ok(url.pathname.includes(service));
+      calls.push(url.searchParams.get('contentTypeId'));
+      return Response.json(tourResult([{ contentid: '264455', title: language === 'en' ? 'Seoul Plaza' : '서울광장', mapx: '127', mapy: '37.5', overview: '<b>Overview</b>' }]));
+    };
+    const response = await nearby(request(`longitude=127&latitude=37.5&lang=${language}`));
+    assert.equal(response.status, 200);
+    assert.deepEqual(calls, codes);
+    const data = await response.json();
+    assert.deepEqual(data.places.map(place => place.kind), ['attraction', 'accommodation']);
+    const details = await detail(request(`lang=${language}&contentTypeId=${codes[0]}`), { params: Promise.resolve({ id: data.places[0].id }) });
+    assert.equal((await details.json()).detail.overview, 'Overview');
+    assert.equal(calls.at(-1), codes[0]);
+  }
+});
+
+test('영문 코스 후보의 언어를 유지하고 상세 오류 응답에 인증키를 노출하지 않는다', async () => {
+  setupEnv();
+  global.fetch = async input => {
+    const url = new URL(String(input));
+    if (url.hostname === 'example.supabase.co') return Response.json(rpcResult(2000, 4));
+    assert.ok(url.pathname.includes('EngService2'));
+    assert.equal(url.searchParams.get('contentTypeId'), '76');
+    return Response.json(tourResult([{ contentid: '100', title: 'English attraction', mapx: '127', mapy: '37.5' }]));
+  };
+  const { GET } = loadTs('app/api/courses/candidates/route.ts');
+  const data = await (await GET(request('restaurantId=1&lang=en'))).json();
+  assert.equal(data.places.find(place => place.source === 'tourapi').title, 'English attraction');
+  const { GET: detail } = loadTs('app/api/tourism/detail/[id]/route.ts');
+  global.fetch = async () => { throw new Error('https://example.com?serviceKey=test-tour-key'); };
+  const error = await detail(request('lang=en'), { params: Promise.resolve({ id: '100' }) });
+  assert.equal(error.status, 502);
+  const body = await error.text();
+  assert.ok(!body.includes('test-tour-key'));
+  assert.match(body, /Unable/);
+});
+
+test('번역은 동적 값을 보존하고 미등록 장소명은 원문을 유지한다', () => {
+  const { translate } = loadTs('app/lib/translations.ts');
+  assert.equal(translate('en', '검색'), 'Search');
+  assert.equal(translate('ko', '검색'), '검색');
+  assert.equal(translate('en', '직선 {distance}', { distance: '1.2km' }), 'Straight-line 1.2km');
+  assert.equal(translate('en', '영문 미등록 가게'), '영문 미등록 가게');
+  for (const file of fs.readdirSync(path.resolve(__dirname, '../app/components')).filter(file => file.endsWith('.tsx'))) {
+    const source = ts.createSourceFile(file, fs.readFileSync(path.resolve(__dirname, '../app/components', file), 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    function visit(node) {
+      if (ts.isCallExpression(node) && node.expression.getText(source) === 't' && node.arguments[0] && ts.isStringLiteral(node.arguments[0]) && /[가-힣]/.test(node.arguments[0].text)) {
+        assert.notEqual(translate('en', node.arguments[0].text), node.arguments[0].text, `Missing translation in ${file}: ${node.arguments[0].text}`);
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(source);
+  }
+});
 test('코스 초안은 출발지를 고정하고 중복 없이 직전 장소에서 가까운 후보를 고른다', () => {
   const { buildCourseDraft } = loadTs('app/lib/courseDraft.ts');
   const start = { ...origin, candidateId: 'supabase:1' };

@@ -1,6 +1,8 @@
 "use client";
+import { useLanguage } from './LanguageProvider';
 import { useState, type MouseEvent, type ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Bell, ChevronLeft, ChevronRight, Heart,
   MapPin, Star, Clock, Coffee, Navigation,
@@ -17,7 +19,24 @@ type Props = {
 
 type Screen = 'celebs' | 'restaurants';
 
+function CelebLogo({ celeb, compact = false }: { celeb: Celeb; compact?: boolean }) {
+  const { t } = useLanguage();
+  return (
+    <div className={`relative shrink-0 overflow-hidden rounded-lg bg-white ${compact ? 'h-12 w-16' : 'h-24 w-32 max-w-full'}`}>
+      <Image
+        src={celeb.logo}
+        alt={t('{name} 로고', { name: t(celeb.name) })}
+        fill
+        sizes={compact ? '64px' : '128px'}
+        className="object-contain mix-blend-multiply"
+        style={{ transform: `scale(${celeb.logoScale})` }}
+      />
+    </div>
+  );
+}
+
 export default function HomeView({ celebrities, restaurants, catalogStatus = 'success', catalogError, onSelectRestaurant }: Props) {
+  const { locale, t } = useLanguage();
   const [screen, setScreen] = useState<Screen>('celebs');
   const [selectedCeleb, setSelectedCeleb] = useState<Celeb | null>(null);
   const [likedIds, setLikedIds] = useState<Set<number>>(
@@ -53,27 +72,21 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
             onClick={() => setScreen('celebs')}
             className="flex items-center gap-1.5 text-sm font-semibold text-plum-700 mb-4"
           >
-            <ChevronLeft size={18} /> 셀럽 목록
-          </button>
+            <ChevronLeft size={18} />{t("셀럽 목록")}</button>
           <div className="flex items-center gap-3">
-            <div
-              className={`w-10 h-10 rounded-full bg-gradient-to-br ${selectedCeleb.gradient} flex items-center justify-center text-lg flex-shrink-0`}
-            >
-              {selectedCeleb.emoji}
-            </div>
+            <CelebLogo celeb={selectedCeleb} compact />
             <div>
               <h2 className="text-lg font-extrabold text-plum-900">
-                {selectedCeleb.name} 추천 맛집
-              </h2>
-              <p className="text-xs text-plum-400">{celebRestaurants.length}개의 맛집</p>
+                {t(selectedCeleb.name)} {t("추천 맛집")}</h2>
+              <p className="text-xs text-plum-400">{celebRestaurants.length}{t("개의 맛집")}</p>
             </div>
           </div>
         </div>
 
+        {locale === 'en' && <p className="px-5 pb-3 text-[11px] leading-5 text-plum-400">{t('영문 정보가 없는 맛집명과 주소는 원문으로 표시돼요.')}</p>}
         {/* Sort button */}
         <div className="px-5 mb-3 flex justify-end">
-          <button className="flex items-center gap-0.5 text-xs font-semibold text-plum-700 bg-white rounded-full px-3 py-1.5 border border-plum-100 shadow-sm">
-            거리순 <ChevronRight size={12} />
+          <button className="flex items-center gap-0.5 text-xs font-semibold text-plum-700 bg-white rounded-full px-3 py-1.5 border border-plum-100 shadow-sm">{t("거리순")}<ChevronRight size={12} />
           </button>
         </div>
 
@@ -82,7 +95,7 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
           {celebRestaurants.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-4xl mb-3">🍽️</p>
-              <p className="text-plum-400 font-medium">추천 맛집이 없어요</p>
+              <p className="text-plum-400 font-medium">{t("추천 맛집이 없어요")}</p>
             </div>
           ) : (
             celebRestaurants.map(r => (
@@ -111,21 +124,19 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
             Celeb
             <span className="bg-plum-700 text-neon-400 rounded-lg px-1.5 py-0.5 ml-0.5">Map</span>
           </h1>
-          <p className="text-xs text-plum-400 mt-0.5">셀럽 추천 맛집 여행</p>
+          <p className="text-xs text-plum-400 mt-0.5">{t("셀럽 추천 맛집 여행")}</p>
         </div>
         <button className="relative w-9 h-9 bg-plum-700 rounded-full flex items-center justify-center shadow-sm">
           <Bell size={17} className="text-neon-400" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-neon-400 rounded-full border border-white" />
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-neon-400 rounded-full border border-white" />
         </button>
       </div>
 
-      <p className="px-5 text-[13px] font-bold text-plum-800 mb-4">
-        어떤 셀럽의 맛집으로 떠나볼까요?
-      </p>
+      <p className="px-5 text-[13px] font-bold text-plum-800 mb-4">{t("어떤 셀럽의 맛집으로 떠나볼까요?")}</p>
 
       {catalogStatus !== 'success' && (
         <div className={`mx-5 mb-4 rounded-2xl px-4 py-3 text-xs font-semibold ${catalogStatus === 'error' ? 'bg-red-50 text-red-700' : 'bg-plum-50 text-plum-500'}`}>
-          {catalogStatus === 'error' ? (catalogError ?? '맛집 정보를 불러오지 못했어요. Supabase 권한 설정을 확인해 주세요.') : '셀럽 맛집을 불러오고 있어요…'}
+          {catalogStatus === 'error' ? (catalogError ?? t("맛집 정보를 불러오지 못했어요. Supabase 권한 설정을 확인해 주세요.")) : t("셀럽 맛집을 불러오고 있어요…")}
         </div>
       )}
 
@@ -137,14 +148,10 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
             onClick={() => goToCeleb(celeb)}
             className="bg-white rounded-3xl border border-plum-100 shadow-sm p-5 flex flex-col items-center gap-3 active:scale-[0.97] hover:border-neon-400 transition-all cursor-pointer"
           >
-            <div
-              className={`w-16 h-16 rounded-full bg-gradient-to-br ${celeb.gradient} flex items-center justify-center text-3xl shadow-md`}
-            >
-              {celeb.emoji}
-            </div>
+            <CelebLogo celeb={celeb} />
             <div className="text-center">
-              <p className="font-extrabold text-plum-900 text-[15px]">{celeb.name}</p>
-              <p className="text-[11px] text-plum-400 mt-0.5">{celeb.group}</p>
+              <p className="font-extrabold text-plum-900 text-[15px]">{t(celeb.name)}</p>
+              <p className="text-[11px] text-plum-400 mt-0.5">{celeb.englishName}</p>
             </div>
             {/* <div
               className={`w-full py-1.5 rounded-xl bg-gradient-to-r ${celeb.gradient} text-white text-xs font-bold text-center`}
@@ -173,6 +180,7 @@ function RestaurantCard({
   onToggleLike: (e: MouseEvent) => void;
   onClick: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div
       onClick={onClick}
@@ -184,10 +192,10 @@ function RestaurantCard({
             const celeb = celebrities.find(c => c.group === g);
             return (
               <span
-                key={g}
+                key={t(g)}
                 className={`px-2.5 py-0.5 bg-gradient-to-r ${celeb?.gradient ?? 'from-plum-700 to-plum-500'} text-white text-[10px] font-bold rounded-full shadow-sm`}
               >
-                {g}
+                {t(g)}
               </span>
             );
           })}
@@ -205,7 +213,7 @@ function RestaurantCard({
         <div>
           <p className="font-bold text-plum-900 text-[15px]">{r.name}</p>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="text-xs text-plum-400">{r.category}</span>
+            <span className="text-xs text-plum-400">{t(r.category)}</span>
             <span className="text-plum-200 text-xs">·</span>
             <span className="text-xs text-plum-400">{r.priceRange}</span>
           </div>
@@ -220,7 +228,7 @@ function RestaurantCard({
           )}
           <div className="flex items-center gap-0.5">
             <MapPin size={10} className="text-plum-400" />
-            <span className="text-xs text-plum-400">{r.distance}</span>
+            <span className="text-xs text-plum-400">{t(r.distance)}</span>
           </div>
         </div>
       </div>
@@ -241,6 +249,7 @@ export function RestaurantDetail({
   onToggleLike: (e: MouseEvent) => void;
   onBack: () => void;
 }) {
+  const { t } = useLanguage();
   const hasCoordinates = r.latitude !== null && r.longitude !== null;
   const mapHref = {
     pathname: `/restaurants/${r.id}/map`,
@@ -271,7 +280,7 @@ export function RestaurantDetail({
         </button>
         <div className="absolute bottom-4 left-4">
           <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-xs font-semibold text-plum-700 rounded-full">
-            {r.category}
+            {t(r.category)}
           </span>
         </div>
       </div>
@@ -284,11 +293,10 @@ export function RestaurantDetail({
               const celeb = celebrities.find(c => c.group === g);
               return (
                 <span
-                  key={g}
+                  key={t(g)}
                   className={`px-3 py-1 bg-gradient-to-r ${celeb?.gradient ?? 'from-plum-700 to-plum-500'} text-white text-xs font-bold rounded-full`}
                 >
-                  {celeb?.emoji} {g} 추천
-                </span>
+                  {celeb?.emoji} {t(g)}{t("추천")}</span>
               );
             })}
           </div>
@@ -313,7 +321,7 @@ export function RestaurantDetail({
           )}
           <div className="flex items-center gap-1">
             <MapPin size={13} className="text-plum-400" />
-            <span className="text-sm text-plum-500">{r.distance}</span>
+            <span className="text-sm text-plum-500">{t(r.distance)}</span>
           </div>
         </div>
 
@@ -327,10 +335,10 @@ export function RestaurantDetail({
         </div> */}
 
         <div className="bg-plum-50 rounded-2xl p-4 space-y-3.5">
-          <InfoRow icon={<MapPin size={14} className="text-plum-700" />} label="위치" value={r.location} />
-          <InfoRow icon={<Clock size={14} className="text-plum-700" />} label="영업시간" value={r.hours} />
+          <InfoRow icon={<MapPin size={14} className="text-plum-700" />} label={t("위치")} value={t(r.location)} />
+          <InfoRow icon={<Clock size={14} className="text-plum-700" />} label={t("영업시간")} value={t(r.hours)} />
           {r.breakTime && (
-            <InfoRow icon={<Coffee size={14} className="text-plum-700" />} label="브레이크 타임" value={r.breakTime} />
+            <InfoRow icon={<Coffee size={14} className="text-plum-700" />} label={t("브레이크 타임")} value={r.breakTime} />
           )}
         </div>
 
@@ -340,17 +348,15 @@ export function RestaurantDetail({
               href={mapHref}
               className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-plum-700 py-4 font-bold text-neon-400 shadow-lg shadow-plum-200/60"
             >
-              <Navigation size={18} /> 위치보기
-            </Link>
+              <Navigation size={18} />{t("위치보기")}</Link>
           ) : (
             <button
               type="button"
               disabled
-              title="등록된 위도·경도가 없습니다."
+              title={t("등록된 위도·경도가 없습니다.")}
               className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-plum-300 py-4 font-bold text-white disabled:cursor-not-allowed"
             >
-              <Navigation size={18} /> 좌표 정보 없음
-            </button>
+              <Navigation size={18} />{t("좌표 정보 없음")}</button>
           )}
           <button
             onClick={onToggleLike}

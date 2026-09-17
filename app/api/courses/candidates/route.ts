@@ -1,11 +1,12 @@
 import type { NextRequest } from 'next/server';
 import { getNearbyRestaurants, NearbySearchError, parseNearbyParams } from '../../../lib/nearbyRestaurants';
 import { getNearbyTourism } from '../../../lib/nearbyTourism';
+import { parseLocale, type Locale } from '../../../lib/locale';
 
-async function collect(restaurantId: number, radius: number) {
+async function collect(restaurantId: number, radius: number, locale: Locale) {
   const restaurants = await getNearbyRestaurants(restaurantId, radius);
   const { longitude, latitude } = restaurants.origin;
-  const tourism = await getNearbyTourism(longitude, latitude, radius, true);
+  const tourism = await getNearbyTourism(longitude, latitude, radius, true, locale);
   const places = [
     ...restaurants.places.map(place => ({ ...place, candidateId: `supabase:${place.id}` })),
     ...tourism.places.map(place => ({ ...place, source: 'tourapi' as const, candidateId: `tourapi:${place.id}` })),
@@ -19,11 +20,12 @@ async function collect(restaurantId: number, radius: number) {
 export async function GET(request: NextRequest) {
   try {
     const params = request.nextUrl.searchParams;
+    const locale = parseLocale(params.get('lang'));
     const { restaurantId, radius } = parseNearbyParams(params);
-    let result = await collect(restaurantId, radius);
+    let result = await collect(restaurantId, radius, locale);
     // 초기 후보 부족 기준은 출발지 외 4곳 미만. 방문 가능성은 후속 코스 생성 단계에서 평가한다.
     if (!params.has('radius') && result.places.length < 4) {
-      result = await collect(restaurantId, 3000);
+      result = await collect(restaurantId, 3000, locale);
     }
     return Response.json({
       ...result,

@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from './LanguageProvider';
 import { Home, Search, Map, User } from 'lucide-react';
 import type { Tab } from '../page';
 
@@ -15,6 +16,7 @@ const tabs = [
 ];
 
 export default function Navbar({ activeTab, setActiveTab }: Props) {
+  const { t } = useLanguage();
   return (
     <nav className="absolute bottom-0 w-full bg-white/95 backdrop-blur-md border-t border-plum-100 px-2 pt-2 pb-4 flex justify-around items-center z-50">
       {tabs.map(tab => {
@@ -35,7 +37,7 @@ export default function Navbar({ activeTab, setActiveTab }: Props) {
               className={`transition-colors ${active ? 'text-plum-700' : 'text-plum-300'}`}
             />
             <span className={`text-[10px] font-semibold tracking-tight transition-colors ${active ? 'text-plum-700' : 'text-plum-300'}`}>
-              {tab.label}
+              {t(tab.label)}
             </span>
           </button>
         );

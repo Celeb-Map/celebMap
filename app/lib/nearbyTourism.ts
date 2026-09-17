@@ -1,10 +1,4 @@
-const TOUR_API_ENDPOINT =
-  'https://apis.data.go.kr/B551011/KorService2/locationBasedList2';
-
-const CONTENT_TYPES = [
-  { id: '12', kind: 'attraction' as const },
-  { id: '32', kind: 'accommodation' as const },
-];
+import { tourismConfig, type Locale } from './locale';
 
 type TourApiItem = {
   contentid?: string;
@@ -24,7 +18,13 @@ function parseCoordinate(value: string | undefined, min: number, max: number) {
   return Number.isFinite(number) && number >= min && number <= max ? number : null;
 }
 
-export async function getNearbyTourism(longitude: number, latitude: number, radius = 3000, attractionsOnly = false) {
+export async function getNearbyTourism(longitude: number, latitude: number, radius = 3000, attractionsOnly = false, locale: Locale = 'ko') {
+  const config = tourismConfig(locale);
+  const endpoint = `https://apis.data.go.kr/B551011/${config.service}/locationBasedList2`;
+  const contentTypes = [
+    { id: config.attraction, kind: 'attraction' as const },
+    { id: config.accommodation, kind: 'accommodation' as const },
+  ];
   const configuredKey = process.env.API_KEY?.trim();
   if (!configuredKey) {
     throw new Error('서버에 TourAPI 인증키가 설정되지 않았습니다.');
@@ -38,7 +38,7 @@ export async function getNearbyTourism(longitude: number, latitude: number, radi
   }
 
   try {
-    const types = attractionsOnly ? CONTENT_TYPES.filter(type => type.kind === 'attraction') : CONTENT_TYPES;
+    const types = attractionsOnly ? contentTypes.filter(type => type.kind === 'attraction') : contentTypes;
     const results = await Promise.all(types.map(async contentType => {
       const params = new URLSearchParams({
         serviceKey,
@@ -53,7 +53,7 @@ export async function getNearbyTourism(longitude: number, latitude: number, radi
         numOfRows: '20',
         pageNo: '1',
       });
-      const response = await fetch(`${TOUR_API_ENDPOINT}?${params}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+      const response = await fetch(`${endpoint}?${params}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
       if (!response.ok) throw new Error(`TourAPI 요청에 실패했습니다. (${response.status})`);
 
       const data = await response.json();

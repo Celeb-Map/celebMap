@@ -9,6 +9,10 @@ type CelebrityRow = {
 };
 
 type RestaurantRow = {
+  name_en?: string | null;
+  address_en?: string | null;
+  business_hours_en?: string | null;
+  category_en?: string | null;
   id: number;
   name_ko: string | null;
   category: string | null;
@@ -118,6 +122,7 @@ export async function GET() {
   const restaurants: Restaurant[] = restaurantRows
     .map((restaurant, index) => ({
       id: restaurant.id,
+      english: { name: restaurant.name_en, address: restaurant.address_en, hours: restaurant.business_hours_en, category: restaurant.category_en },
       name: restaurant.name_ko ?? '이름 없는 맛집',
       category: restaurant.category ?? '맛집',
       distance: '주소 확인',

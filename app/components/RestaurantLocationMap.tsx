@@ -1,4 +1,5 @@
 'use client';
+import { useLanguage } from './LanguageProvider';
 
 import { useEffect, useRef, useState } from 'react';
 import { AlertCircle, ChevronLeft, LoaderCircle, MapPin, Navigation } from 'lucide-react';
@@ -46,11 +47,12 @@ function loadKakaoMaps(appKey: string) {
 }
 
 export default function RestaurantLocationMap({ restaurantId, name, address, latitude, longitude }: Props) {
+  const { t } = useLanguage();
   const router = useRouter();
   const mapRef = useRef<HTMLDivElement>(null);
   const appKey = process.env.NEXT_PUBLIC_KAKAO_MAP_SCRIPT_KEY ?? process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
   const [mapStatus, setMapStatus] = useState<'loading' | 'success' | 'error'>(appKey ? 'loading' : 'error');
-  const [mapError, setMapError] = useState(appKey ? '' : '카카오 지도 JavaScript 키가 설정되지 않았습니다.');
+  const [mapError, setMapError] = useState(appKey ? '' : t("카카오 지도 JavaScript 키가 설정되지 않았습니다."));
   const validCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude)
     && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
 
@@ -76,11 +78,11 @@ export default function RestaurantLocationMap({ restaurantId, name, address, lat
       .catch(error => {
         if (!cancelled) {
           setMapStatus('error');
-          setMapError(error instanceof Error ? error.message : '카카오 지도를 표시하지 못했습니다.');
+          setMapError(error instanceof Error ? error.message : t("카카오 지도를 표시하지 못했습니다."));
         }
       });
     return () => { cancelled = true };
-  }, [appKey, latitude, longitude, name, validCoordinates]);
+  }, [appKey, latitude, longitude, name, validCoordinates, t]);
 
   const directionsUrl = validCoordinates
     ? `https://map.kakao.com/link/to/${encodeURIComponent(name)},${latitude},${longitude}`
@@ -89,7 +91,7 @@ export default function RestaurantLocationMap({ restaurantId, name, address, lat
   return (
     <main className="mx-auto flex h-screen w-full max-w-md flex-col overflow-hidden border-x border-plum-100 bg-canvas shadow-2xl">
       <header className="z-20 flex items-center gap-3 border-b border-plum-100 bg-white px-4 py-4 shadow-sm">
-        <button type="button" onClick={() => router.back()} aria-label="이전 화면" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-plum-700 text-neon-400">
+        <button type="button" onClick={() => router.back()} aria-label={t("이전 화면")} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-plum-700 text-neon-400">
           <ChevronLeft size={20} />
         </button>
         <div className="min-w-0">
@@ -99,12 +101,12 @@ export default function RestaurantLocationMap({ restaurantId, name, address, lat
       </header>
 
       <section className="relative flex-1 overflow-hidden bg-plum-50">
-        {validCoordinates ? <div ref={mapRef} className="h-full w-full" aria-label={`${name} 위치 지도`} /> : (
-          <MapMessage icon="pin" message="유효한 위도·경도가 없습니다." detail={`맛집 ID: ${restaurantId}`} />
+        {validCoordinates ? <div ref={mapRef} className="h-full w-full" aria-label={t('{name} 위치 지도', { name })} /> : (
+          <MapMessage icon="pin" message={t("유효한 위도·경도가 없습니다.")} detail={t('맛집 ID: {id}', { id: restaurantId })} />
         )}
-        {validCoordinates && mapStatus === 'loading' && <MapMessage icon="loading" message="카카오 지도를 불러오고 있어요." />}
+        {validCoordinates && mapStatus === 'loading' && <MapMessage icon="loading" message={t("카카오 지도를 불러오고 있어요.")} />}
         {validCoordinates && mapStatus === 'error' && (
-          <MapMessage icon="error" message={mapError} detail="카카오 개발자 콘솔의 JavaScript 키와 등록 도메인을 확인해 주세요." />
+          <MapMessage icon="error" message={t(mapError)} detail={t("카카오 개발자 콘솔의 JavaScript 키와 등록 도메인을 확인해 주세요.")} />
         )}
 
         {validCoordinates && mapStatus === 'success' && (
@@ -114,12 +116,11 @@ export default function RestaurantLocationMap({ restaurantId, name, address, lat
               <div className="min-w-0 flex-1">
                 <p className="truncate font-extrabold text-plum-900">{name}</p>
                 <p className="mt-1 truncate text-xs text-plum-400">{address}</p>
-                <p className="mt-1.5 text-[11px] font-medium text-plum-400">위도 {latitude.toFixed(6)} · 경도 {longitude.toFixed(6)}</p>
+                <p className="mt-1.5 text-[11px] font-medium text-plum-400">{t("위도")}{latitude.toFixed(6)}{t("· 경도")}{longitude.toFixed(6)}</p>
               </div>
             </div>
             <a href={directionsUrl} target="_blank" rel="noreferrer" className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-plum-700 py-3.5 text-sm font-extrabold text-neon-400 shadow-md shadow-plum-200">
-              <Navigation size={17} /> 카카오맵 길찾기
-            </a>
+              <Navigation size={17} />{t("카카오맵 길찾기")}</a>
           </div>
         )}
       </section>
@@ -128,12 +129,13 @@ export default function RestaurantLocationMap({ restaurantId, name, address, lat
 }
 
 function MapMessage({ icon, message, detail }: { icon: 'pin' | 'loading' | 'error'; message: string; detail?: string }) {
+  const { t } = useLanguage();
   return (
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-plum-50 px-8 text-center">
       <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-plum-600 shadow-sm">
         {icon === 'loading' ? <LoaderCircle size={25} className="animate-spin" /> : icon === 'error' ? <AlertCircle size={25} /> : <MapPin size={25} />}
       </span>
-      <p className="font-bold text-plum-700">{message}</p>
+      <p className="font-bold text-plum-700">{t(message)}</p>
       {detail && <p className="mt-2 text-sm leading-5 text-plum-400">{detail}</p>}
     </div>
   );

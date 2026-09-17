@@ -1,8 +1,10 @@
 import type { NextRequest } from 'next/server';
 import { getNearbyTourism } from '../../../lib/nearbyTourism';
+import { parseLocale } from '../../../lib/locale';
 
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
+  const locale = parseLocale(params.get('lang'));
   const lonText = params.get('longitude');
   const latText = params.get('latitude');
   const longitude = Number(lonText);
@@ -19,10 +21,10 @@ export async function GET(request: NextRequest) {
     return Response.json({ message: '서버에 TourAPI 인증키가 설정되지 않았습니다.' }, { status: 500 });
   }
   try {
-    return Response.json(await getNearbyTourism(longitude, latitude, Number(radius)), {
+    return Response.json(await getNearbyTourism(longitude, latitude, Number(radius), false, locale), {
       headers: { 'Cache-Control': 'no-store' },
     });
   } catch {
-    return Response.json({ message: 'TourAPI 주변 장소 조회에 실패했습니다.' }, { status: 502 });
+    return Response.json({ message: locale === 'en' ? 'Unable to load English travel information. Please try again.' : 'TourAPI 주변 장소 조회에 실패했습니다.' }, { status: 502 });
   }
 }
