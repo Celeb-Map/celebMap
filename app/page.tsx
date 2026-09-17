@@ -65,12 +65,12 @@ export default function Page() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-full bg-canvas max-w-md mx-auto border-x border-plum-100 overflow-hidden relative shadow-2xl">
+    <div className="flex flex-col h-dvh w-full bg-canvas max-w-md mx-auto border-x border-plum-100 overflow-hidden relative shadow-2xl">
       <div className="flex shrink-0 items-center justify-between border-b border-plum-100 bg-canvas px-5 py-2">
         <span className="text-[11px] font-semibold text-plum-500">{t('언어')}</span>
         <LanguageToggle />
       </div>
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain no-scrollbar">
         {activeTab === 'home' && (
           <HomeView celebrities={CELEBRITIES} restaurants={displayedRestaurants} catalogStatus={catalogStatus} catalogError={locale === 'en' && catalogError ? t('맛집 정보를 불러오지 못했습니다.') : catalogError} onSelectRestaurant={openRestaurantMap} />
         )}

@@ -18,7 +18,7 @@ const tabs = [
 export default function Navbar({ activeTab, setActiveTab }: Props) {
   const { t } = useLanguage();
   return (
-    <nav className="absolute bottom-0 w-full bg-white/95 backdrop-blur-md border-t border-plum-100 px-2 pt-2 pb-4 flex justify-around items-center z-50">
+    <nav className="absolute bottom-0 w-full bg-white border-t border-plum-100 px-2 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-around items-center z-50">
       {tabs.map(tab => {
         const Icon = tab.icon;
         const active = activeTab === tab.id;

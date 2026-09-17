@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Bell, ChevronLeft, ChevronRight, Heart,
-  MapPin, Star, Clock, Coffee, Navigation,
+  MapPin, Star, Clock, Coffee, Navigation, Utensils, CakeSlice, Wine,
 } from 'lucide-react';
 import type { Celeb, Restaurant } from '../lib/types';
 
@@ -102,7 +102,6 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
               <RestaurantCard
                 key={r.id}
                 restaurant={r}
-                celebrities={celebrities}
                 liked={likedIds.has(r.id)}
                 onToggleLike={e => toggleLike(e, r.id)}
                 onClick={() => onSelectRestaurant(r)}
@@ -146,7 +145,7 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
           <button
             key={celeb.id}
             onClick={() => goToCeleb(celeb)}
-            className="bg-white rounded-3xl border border-plum-100 shadow-sm p-5 flex flex-col items-center gap-3 active:scale-[0.97] hover:border-neon-400 transition-all cursor-pointer"
+            className="bg-white rounded-3xl border border-plum-100 shadow-sm p-5 flex flex-col items-center gap-3 hover:border-neon-400 transition-colors cursor-pointer"
           >
             <CelebLogo celeb={celeb} />
             <div className="text-center">
@@ -168,71 +167,65 @@ export default function HomeView({ celebrities, restaurants, catalogStatus = 'su
 /* ── 서브 컴포넌트들 ── */
 
 function RestaurantCard({
-  restaurant: r,
-  celebrities,
-  liked,
-  onToggleLike,
-  onClick,
+  restaurant: r, liked, onToggleLike, onClick,
 }: {
   restaurant: Restaurant;
-  celebrities: Celeb[];
   liked: boolean;
   onToggleLike: (e: MouseEvent) => void;
   onClick: () => void;
 }) {
-  const { t } = useLanguage();
+  const { locale, t } = useLanguage();
+  const Icon = /카페|커피|cafe|café|coffee/i.test(r.category) ? Coffee
+    : /디저트|베이커리|dessert|bakery/i.test(r.category) ? CakeSlice
+    : /주점|술집|와인|bar|pub|wine/i.test(r.category) ? Wine : Utensils;
+
   return (
-    <div
-      onClick={onClick}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-plum-100 cursor-pointer active:scale-[0.99] transition-transform"
-    >
-      <div className={`h-36 bg-gradient-to-br ${r.colorFrom} ${r.colorTo} relative flex items-end`}>
-        <div className="px-3 pb-3 flex gap-1.5">
-          {r.recom.map(g => {
-            const celeb = celebrities.find(c => c.group === g);
-            return (
-              <span
-                key={t(g)}
-                className={`px-2.5 py-0.5 bg-gradient-to-r ${celeb?.gradient ?? 'from-plum-700 to-plum-500'} text-white text-[10px] font-bold rounded-full shadow-sm`}
-              >
-                {t(g)}
-              </span>
-            );
-          })}
-        </div>
-        <button
-          onClick={onToggleLike}
-          className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm transition-colors ${
-            liked ? 'bg-plum-700' : 'bg-white/85'
-          }`}
-        >
-          <Heart size={15} className={liked ? 'fill-neon-400 text-neon-400' : 'text-plum-400'} />
-        </button>
-      </div>
-      <div className="px-4 py-3 flex items-center justify-between">
-        <div>
-          <p className="font-bold text-plum-900 text-[15px]">{r.name}</p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="text-xs text-plum-400">{t(r.category)}</span>
-            <span className="text-plum-200 text-xs">·</span>
-            <span className="text-xs text-plum-400">{r.priceRange}</span>
+    <article className="relative rounded-2xl border border-plum-100 bg-white shadow-sm">
+      <button
+        type="button"
+        onClick={onClick}
+        className="block w-full rounded-2xl p-4 text-left transition-colors hover:bg-plum-50/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-500"
+      >
+        <div className="flex items-start gap-3 pr-10">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-plum-100 bg-plum-50 text-plum-700">
+            <Icon size={23} strokeWidth={1.6} aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold text-plum-500">{t(r.category)}</p>
+            <h3 className="mt-0.5 break-words text-[16px] font-extrabold leading-snug text-plum-900">{r.name}</h3>
+            {r.priceRange && <p className="mt-1 text-xs text-plum-400">{r.priceRange}</p>}
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          {r.rating > 0 && (
-            <div className="flex items-center gap-0.5">
-              <Star size={12} className="fill-neon-400 text-plum-700" />
-              <span className="text-sm font-bold text-plum-800">{r.rating}</span>
-              <span className="text-xs text-plum-400 ml-0.5">({r.reviewCount})</span>
-            </div>
-          )}
-          <div className="flex items-center gap-0.5">
-            <MapPin size={10} className="text-plum-400" />
-            <span className="text-xs text-plum-400">{t(r.distance)}</span>
+        {r.location && (
+          <div className="mt-3 flex items-start gap-1.5 text-xs leading-5 text-plum-500">
+            <MapPin size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <span className="line-clamp-2 break-words">{r.location}</span>
           </div>
+        )}
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {r.recom.map(group => (
+            <span key={group} className="rounded-md bg-neon-50 px-2 py-1 text-[10px] font-bold text-plum-700">
+              {t(group)} · {t('추천')}
+            </span>
+          ))}
         </div>
-      </div>
-    </div>
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-plum-100 pt-3">
+          <span className="flex min-w-0 items-center gap-1 text-[11px] text-plum-400">
+            {r.rating > 0 ? <><Star size={12} className="shrink-0 fill-neon-400 text-plum-700" aria-hidden="true" /><span className="font-bold text-plum-700">{r.rating}</span>{r.reviewCount > 0 && <span>({r.reviewCount})</span>}</> : <><Navigation size={12} className="shrink-0" aria-hidden="true" /><span>{t(r.distance)}</span></>}
+          </span>
+          <span className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-plum-700">{t('위치보기')}<ChevronRight size={13} aria-hidden="true" /></span>
+        </div>
+      </button>
+      <button
+        type="button"
+        onClick={onToggleLike}
+        aria-label={r.name + (locale === 'ko' ? ' 찜' : ' — Save')}
+        aria-pressed={liked}
+        className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full text-plum-500 transition-colors hover:bg-plum-50 focus-visible:outline-2 focus-visible:outline-plum-500"
+      >
+        <Heart size={19} className={liked ? 'fill-neon-400 text-plum-700' : 'text-plum-300'} aria-hidden="true" />
+      </button>
+    </article>
   );
 }
 
