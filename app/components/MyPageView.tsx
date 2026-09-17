@@ -1,7 +1,7 @@
 "use client";
 import { LanguageToggle, useLanguage } from './LanguageProvider';
 import { useState } from 'react';
-import { Heart, Route, MapPin, Star, LogIn } from 'lucide-react';
+import { Heart, Route, MapPin, Star, LogIn, Utensils } from 'lucide-react';
 import type { Restaurant } from '../lib/types';
 
 type Props = {
@@ -127,7 +127,9 @@ export default function MyPageView({ restaurants }: Props) {
           <>
             {likedRestaurants.length === 0 ? (
               <div className="text-center py-14">
-                <p className="text-4xl mb-3">🍽️</p>
+                <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-plum-100 bg-plum-50 text-plum-700">
+                  <Utensils size={26} strokeWidth={1.6} aria-hidden="true" />
+                </span>
                 <p className="font-semibold text-plum-600">{t("좋아요한 맛집이 없어요")}</p>
                 <p className="text-sm text-plum-400 mt-1">{t("홈에서 마음에 드는 맛집을 저장해보세요")}</p>
               </div>
