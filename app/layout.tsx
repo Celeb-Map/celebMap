@@ -19,11 +19,31 @@ const geistMono = Geist_Mono({
 const kakaoMapKey = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://celeb-map.vercel.app"),
   icons: {
     icon: { url: "/logo_v1.png", type: "image/png" },
   },
   title: "CelebMap — 셀럽 추천 맛집 여행",
   description: "좋아하는 셀럽이 다녀간 맛집을 찾고, 나만의 여행 코스를 만들어보세요.",
+  openGraph: {
+    type: "website",
+    siteName: "CelebMap",
+    title: "CelebMap — 셀럽 추천 맛집 여행",
+    description: "좋아하는 셀럽이 다녀간 맛집을 찾고, 나만의 여행 코스를 만들어보세요.",
+    images: [{
+      url: "/logo_v1.png",
+      width: 500,
+      height: 500,
+      type: "image/png",
+      alt: "CelebMap 로고",
+    }],
+  },
+  twitter: {
+    card: "summary",
+    title: "CelebMap — 셀럽 추천 맛집 여행",
+    description: "좋아하는 셀럽이 다녀간 맛집을 찾고, 나만의 여행 코스를 만들어보세요.",
+    images: [{ url: "/logo_v1.png", alt: "CelebMap 로고" }],
+  },
 };
 
 export default async function RootLayout({
