@@ -77,7 +77,7 @@ function NearbyResults({ restaurant, filter }: { restaurant: Restaurant; filter:
 
   return (
     <div className="space-y-5">
-      {(['accommodation', 'attraction'] as const).filter(kind => filter === 'all' || (filter === 'hotel' ? kind === 'accommodation' : kind === 'attraction')).map(kind => {
+      {(['attraction', 'accommodation'] as const).filter(kind => filter === 'all' || (filter === 'hotel' ? kind === 'accommodation' : kind === 'attraction')).map(kind => {
         const items = places.filter(place => place.kind === kind);
         const Icon = kind === 'accommodation' ? BedDouble : MapPin;
         return <section key={kind}>
