@@ -3,6 +3,7 @@ import type { Locale } from './locale';
 // UI copy only. Unknown place names and addresses remain in their source language.
 const english: Record<string, string> = {
   '언어': 'Language',
+  '정보': 'Info',
   '셀럽 목록': 'Celebrities',
   '추천 맛집': 'recommended restaurants',
   '개의 맛집': ' restaurants',

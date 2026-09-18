@@ -228,15 +228,24 @@ export default function MapView({ restaurant }: { restaurant: Restaurant | null 
         {mapError && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-plum-50 px-8 text-center"><div><AlertCircle className="mx-auto mb-3 text-plum-500" size={30} /><p className="text-sm font-bold text-plum-800">{t("Kakao 지도를 표시하지 못했습니다.")}</p><p className="mt-2 text-xs leading-5 text-plum-500">{t(mapError)}</p></div></div>
         )}
-        <div className="absolute left-4 right-4 top-4 z-20 rounded-2xl border border-plum-100 bg-white/95 p-3 shadow-md backdrop-blur-sm">
-          <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-full ${status === 'error' ? 'bg-neon-400' : 'bg-plum-50'}`}>
-              {status === 'loading' ? <LoaderCircle size={17} className="animate-spin text-plum-700" /> : status === 'error' ? <AlertCircle size={17} className="text-plum-900" /> : <Store size={17} className="text-plum-700" />}
+        <div className="absolute left-4 right-4 top-4 z-20 space-y-2">
+          <details key={restaurant.id} className="group overflow-hidden rounded-2xl border border-plum-100 bg-white/95 shadow-sm backdrop-blur-sm">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2.5 rounded-2xl px-3 py-2 text-plum-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-700 [&::-webkit-details-marker]:hidden">
+              <Store size={16} className="shrink-0" aria-hidden="true" />
+              <span className="min-w-0 flex-1 truncate text-xs font-bold text-plum-900">{restaurant.name}{t("주변")}</span>
+              <span className="shrink-0 text-[10px] text-plum-500">{t("정보")}</span>
+              <ChevronDown size={14} className="shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
+            </summary>
+            <div className="space-y-2 border-t border-plum-100 px-3 py-3 text-[11px] leading-5 text-plum-500">
+              {status !== 'loading' && status !== 'error' && <p>{t(message)}</p>}
+              <div className="flex items-start gap-1.5"><MapPin size={13} className="mt-1 shrink-0" aria-hidden="true" /><span>{t("기준 맛집 ·")}{restaurant.location || t("주소 정보 없음")}</span></div>
             </div>
-            <div className="min-w-0 flex-1"><p className="truncate text-xs font-bold text-plum-900">{restaurant.name}{t("주변")}</p><p className="mt-0.5 truncate text-[11px] text-plum-500">{t(message)}</p></div>
-          </div>
-          <div className="mt-2 flex items-center gap-1.5 border-t border-plum-100 pt-2 text-[10px] text-plum-400"><MapPin size={11} /><span className="min-w-0 flex-1 truncate">{t("기준 맛집 ·")}{restaurant.location || t("주소 정보 없음")}</span></div>
-          {!courseOpen && <button type="button" onClick={() => { closeDetail(); setCourseOpen(true); }} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-plum-700 py-3 text-xs font-extrabold text-neon-400"><Sparkles size={16} />{t("이 맛집에서 추천 코스 만들기")}<span className="ml-1 text-[10px] font-medium text-white/70">{t("4~5곳")}</span></button>}
+          </details>
+          {(status === 'loading' || status === 'error') && <div role="status" className="flex items-center gap-2 rounded-xl bg-white/95 px-3 py-2 text-[11px] leading-5 text-plum-700 shadow-sm">
+            {status === 'loading' ? <LoaderCircle size={14} className="shrink-0 animate-spin" /> : <AlertCircle size={14} className="shrink-0" />}
+            <span>{t(message)}</span>
+          </div>}
+          {!courseOpen && <button type="button" onClick={() => { closeDetail(); setCourseOpen(true); }} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-plum-700 px-3 py-2 text-xs font-extrabold text-neon-400 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-700"><Sparkles size={16} className="shrink-0" />{t("이 맛집에서 추천 코스 만들기")}<span className="shrink-0 text-[10px] font-medium text-white/70">{t("4~5곳")}</span></button>}
         </div>
       </div>
 
